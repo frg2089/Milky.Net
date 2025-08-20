@@ -1,0 +1,10 @@
+﻿using System.Text.Json.Serialization;
+
+namespace Shimakaze.Milky.Client.SourceGenerator.Data;
+
+public sealed record ApiEndPoint(
+    [property: JsonPropertyName("endpoint")] string Endpoint,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("inputStruct")] string? InputStruct,
+    [property: JsonPropertyName("outputStruct")] string? OutputStruct
+);

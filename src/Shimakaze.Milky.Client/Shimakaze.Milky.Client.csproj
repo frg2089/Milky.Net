@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="ApiEndpoints.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="ApiEndpoints.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shimakaze.Milky.Client.SourceGenerator\Shimakaze.Milky.Client.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Shimakaze.Milky.Model\Shimakaze.Milky.Model.csproj" />
+  </ItemGroup>
+
+</Project>
