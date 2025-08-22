@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Shimakaze.Milky.Client.SourceGenerator.Data;
+namespace Shimakaze.Milky.SourceGenerator.Common;
 
 public sealed record ApiEndPoints(
     [property: JsonPropertyName("name")] string Name,

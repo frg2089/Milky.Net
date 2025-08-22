@@ -20,6 +20,10 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Shimakaze.Milky.SourceGenerator.Common\*.cs" />
+  </ItemGroup>
+
   <PropertyGroup>
     <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
   </PropertyGroup>
@@ -39,10 +43,7 @@
   </Target>
   
   <Target Name="CopyJsonDll" AfterTargets="Build">
-    <Copy
-      SourceFiles="@(TargetPathWithTargetPlatformMoniker)"
-      DestinationFolder="$(OutputPath)"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(TargetPathWithTargetPlatformMoniker)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

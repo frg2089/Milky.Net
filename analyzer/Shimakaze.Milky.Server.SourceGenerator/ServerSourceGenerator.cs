@@ -4,12 +4,12 @@ using Humanizer;
 
 using Microsoft.CodeAnalysis;
 
-using Shimakaze.Milky.Client.SourceGenerator.Data;
+using Shimakaze.Milky.SourceGenerator.Common;
 
-namespace Shimakaze.Milky.Client.SourceGenerator;
+namespace Shimakaze.Milky.Server.SourceGenerator;
 
 [Generator(LanguageNames.CSharp)]
-public sealed class ClientSourceGenerator : IIncrementalGenerator
+public sealed class ServerSourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -29,19 +29,19 @@ public sealed class ClientSourceGenerator : IIncrementalGenerator
                 {
                     var name = char.ToUpperInvariant(category[0]) + category[1..];
                     using StringWriter sw = new();
-                    #nullable enable
+                    using StringWriter registry = new();
+
                     sw.WriteLine($$"""
                         using Shimakaze.Milky.Model.Api.{{name}};
 
                         #nullable enable
 
-                        namespace Shimakaze.Milky.Client;
+                        namespace Shimakaze.Milky.Server;
                         
                         /// <summary>
                         /// {{endpoints.Name}}
                         /// </summary>
-                        /// <param name="client"></param>
-                        public sealed class Milky{{name}}Client(MilkyClient client)
+                        public interface IMilky{{name}}ApiEndpoints
                         {
                         """);
                     foreach (var endpoint in endpoints.Apis)
@@ -62,16 +62,13 @@ public sealed class ClientSourceGenerator : IIncrementalGenerator
                             /// {{endpoint.Description}} <br />
                             /// 详见文档 <see href="https://milky.ntqqrev.org/api/{{category}}#{{endpoint.Endpoint}}"/>
                             /// </summary>
-                            public async {{returnType}} {{endpoint.Endpoint.Pascalize()}}Async({{parameter}}CancellationToken cancellationToken = default)
-                                => await client.RequestAsync("{{endpoint.Endpoint}}", {{argument}},
-                                    MilkyJsonSerializerContext.Default.{{endpoint.InputStruct ?? "Object"}},
-                                    MilkyJsonSerializerContext.Default.{{endpoint.OutputStruct ?? "Object"}},
-                                    cancellationToken: cancellationToken);
+                            [ApiEndpoint("{{endpoint.Endpoint}}")]
+                            {{returnType}} {{endpoint.Endpoint.Pascalize()}}Async({{parameter}}CancellationToken cancellationToken = default);
                         """);
                     }
                     sw.WriteLine("}");
 
-                    context.AddSource($"Milky{name}Client.g.cs", sw.ToString());
+                    context.AddSource($"IMilky{name}ApiEndpoints.g.cs", sw.ToString());
                 }
             });
     }

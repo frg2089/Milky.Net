@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\ApiEndpoints.json" Link="ApiEndpoints.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\analyzer\Shimakaze.Milky.Server.SourceGenerator\Shimakaze.Milky.Server.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Shimakaze.Milky.Model\Shimakaze.Milky.Model.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <AdditionalFiles Include="ApiEndpoints.json" />
+    <AdditionalFiles Include="..\..\ApiEndpoints.json" Link="ApiEndpoints.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shimakaze.Milky.Client.SourceGenerator\Shimakaze.Milky.Client.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\analyzer\Shimakaze.Milky.Client.SourceGenerator\Shimakaze.Milky.Client.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Shimakaze.Milky.Model\Shimakaze.Milky.Model.csproj" />
   </ItemGroup>
 
