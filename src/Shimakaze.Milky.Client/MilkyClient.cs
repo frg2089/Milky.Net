@@ -11,8 +11,6 @@ public sealed class MilkyClient(HttpClient client, IEnumerable<IMilkyClientMiddl
 {
     public static readonly object EmptyObject = new();
 
-    public const string Version = "1.0.0-draft.6";
-
     private const string MetadataFactoryRequiresUnreferencedCode = "此方法与 AOT 不兼容，请使用带有 JsonTypeInfo<TRequest> 和 JsonTypeInfo<TResponse> 的方法。";
     private readonly ImmutableArray<IMilkyClientMiddleware> _middleware = [.. middleware];
 
