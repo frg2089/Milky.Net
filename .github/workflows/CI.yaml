@@ -1,0 +1,91 @@
+name: Build and Pack
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/CI.yml      
+      - .config/dotnet-tools.json
+      - global.json
+      - nuget.config
+      - Shimakaze.Milky.slnx
+      - Directory.Build.props
+      - Directory.Build.targets
+      - Directory.Packages.props
+      - "src/**/*"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/CI.yml      
+      - .config/dotnet-tools.json
+      - global.json
+      - nuget.config
+      - Shimakaze.Milky.slnx
+      - Directory.Build.props
+      - Directory.Build.targets
+      - Directory.Packages.props
+      - "src/**/*"
+
+jobs:
+  build:
+    name: 构建
+    runs-on: windows-latest
+    steps:
+      - name: 签出仓库
+        uses: actions/checkout@v5
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: 配置 .Net 环境
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+          cache: false
+
+      - name: 还原
+        run: dotnet restore --graph --artifacts-path artifacts
+
+      - name: 生成
+        run: dotnet build --graph --artifacts-path artifacts --configuration Release --no-restore
+
+      - name: 打包
+        run: dotnet pack --graph --artifacts-path artifacts --configuration Release --no-restore --no-build --include-symbols
+
+      - name: 收集 Nuget 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: |
+            artifacts\package\release\*
+          retention-days: 3
+
+  publish:
+    needs: build
+    name: 发布
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+      discussions: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: nuget-packages
+          path: artifact
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifact/*
+      - name: 推送 Nuget 包
+        shell: pwsh
+        continue-on-error: true
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: |
+          Set-Location artifact
+          dotnet nuget push *.nupkg -s nuget -k $env:NUGET_TOKEN --skip-duplicate
+          Set-Location ..
