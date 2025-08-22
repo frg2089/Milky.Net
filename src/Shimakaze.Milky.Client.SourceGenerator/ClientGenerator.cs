@@ -28,7 +28,7 @@ public sealed class ClientSourceGenerator : IIncrementalGenerator
                 foreach (var (category, endpoints) in map)
                 {
                     var name = char.ToUpperInvariant(category[0]) + category[1..];
-                    StringWriter sw = new();
+                    using StringWriter sw = new();
                     #nullable enable
                     sw.WriteLine($$"""
                         using Shimakaze.Milky.Model.Api.{{name}};

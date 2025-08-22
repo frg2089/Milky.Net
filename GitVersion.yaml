@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/GitTools/GitVersion/refs/heads/main/schemas/6.3/GitVersion.configuration.json
+workflow: GitHubFlow/v1
+assembly-versioning-scheme: MajorMinorPatchTag
+assembly-file-versioning-scheme: MajorMinorPatchTag

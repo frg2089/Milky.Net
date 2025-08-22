@@ -4,8 +4,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-using Shimakaze.Milky.Model;
-
 namespace Shimakaze.Milky.Client;
 
 
@@ -29,7 +27,7 @@ public sealed class MilkyClient(HttpClient client, IEnumerable<IMilkyClientMiddl
             _middleware[i].PreRequest(api, request, reqTypeInfo, resTypeInfo);
         }
 
-        var response = await client.PostAsJsonAsync($"/api/{api}", request, reqTypeInfo, cancellationToken: cancellationToken);
+        using var response = await client.PostAsJsonAsync($"/api/{api}", request, reqTypeInfo, cancellationToken: cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
@@ -53,25 +51,4 @@ public sealed class MilkyClient(HttpClient client, IEnumerable<IMilkyClientMiddl
     [RequiresDynamicCode(MetadataFactoryRequiresUnreferencedCode)]
     public async Task<TResponse> RequestAsync<TRequest, TResponse>(string api, TRequest request, CancellationToken cancellationToken = default)
         => await RequestAsync(api, request, JsonTypeInfo.CreateJsonTypeInfo<TRequest>(MilkyJsonSerializerContext.Default.Options), JsonTypeInfo.CreateJsonTypeInfo<TResponse>(MilkyJsonSerializerContext.Default.Options), cancellationToken);
-
-    /// <summary>
-    /// 使用 <see cref="MilkyJsonSerializerContext"/> 进行请求
-    /// </summary>
-    /// <typeparam name="TRequest"></typeparam>
-    /// <typeparam name="TResponse"></typeparam>
-    /// <param name="api"></param>
-    /// <param name="request"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    /// <exception cref="MilkyException">找不到类型对应的 JsonTypeInfo </exception>
-    public async Task<TResponse> AotCompatibleRequestAsync<TRequest, TResponse>(string api, TRequest request, CancellationToken cancellationToken = default)
-    {
-        if (MilkyJsonSerializerContext.Default.GetTypeInfo(typeof(TRequest)) is not JsonTypeInfo<TRequest> reqTypeInfo)
-            throw new MilkyException("无法获取请求类型信息");
-
-        if (MilkyJsonSerializerContext.Default.GetTypeInfo(typeof(TResponse)) is not JsonTypeInfo<TResponse> resTypeInfo)
-            throw new MilkyException("无法获取响应类型信息");
-
-        return await RequestAsync(api, request, reqTypeInfo, resTypeInfo, cancellationToken);
-    }
 }
