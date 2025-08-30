@@ -14,5 +14,6 @@
   </Folder>
   <Project Path="src/Shimakaze.Milky.Client/Shimakaze.Milky.Client.csproj" />
   <Project Path="src/Shimakaze.Milky.Model/Shimakaze.Milky.Model.csproj" />
+  <Project Path="src/Shimakaze.Milky.Server.Lagrange/Shimakaze.Milky.Server.Lagrange.csproj" />
   <Project Path="src/Shimakaze.Milky.Server/Shimakaze.Milky.Server.csproj" />
 </Solution>
