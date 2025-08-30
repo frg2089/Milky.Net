@@ -13,5 +13,5 @@ public abstract record class IncomingMessage(
     [property: JsonPropertyName("peer_id")] long PeerId,
     [property: JsonPropertyName("message_seq")] long MessageSeq,
     [property: JsonPropertyName("sender_id")] long SenderId,
-    [property: JsonPropertyName("time")] DateTimeOffset Time,
+    [property: JsonPropertyName("time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset Time,
     [property: JsonPropertyName("segments")] IncomingSegment[] Segments);

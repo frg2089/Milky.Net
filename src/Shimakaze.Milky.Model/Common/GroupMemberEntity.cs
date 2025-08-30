@@ -25,7 +25,7 @@ public sealed record class GroupMemberEntity(
     [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("level")] int Level,
     [property: JsonPropertyName("role")] Role Role,
-    [property: JsonPropertyName("join_time")] DateTimeOffset JoinTime,
-    [property: JsonPropertyName("last_sent_time")] DateTimeOffset LastSentTime,
-    [property: JsonPropertyName("shut_up_end_time")] DateTimeOffset? MuteEndTime)
+    [property: JsonPropertyName("join_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset JoinTime,
+    [property: JsonPropertyName("last_sent_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset LastSentTime,
+    [property: JsonPropertyName("shut_up_end_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset? MuteEndTime)
     : UserEntityBase(UserId, NickName, Sex);

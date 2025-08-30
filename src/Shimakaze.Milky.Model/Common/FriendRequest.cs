@@ -15,7 +15,7 @@ namespace Shimakaze.Milky.Model.Common;
 /// <param name="Via">申请来源</param>
 /// <param name="IsFiltered">请求是否被过滤（发起自风险账户）</param>
 public sealed record class FriendRequest(
-    [property: JsonPropertyName("time")] DateTimeOffset Time,
+    [property: JsonPropertyName("time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset Time,
     [property: JsonPropertyName("initiator_id")] long InitiatorId,
     [property: JsonPropertyName("initiator_uid")] string InitiatorUid,
     [property: JsonPropertyName("target_user_id")] long TargetUserId,

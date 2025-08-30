@@ -18,7 +18,7 @@ public sealed record class GroupFolderEntity(
     [property: JsonPropertyName("folder_id")] string FolderId,
     [property: JsonPropertyName("parent_folder_id")] string ParentFolderId,
     [property: JsonPropertyName("folder_name")] string FolderName,
-    [property: JsonPropertyName("created_time")] DateTimeOffset CreatedTime,
-    [property: JsonPropertyName("last_modified_time")] DateTimeOffset LastModifiedTime,
+    [property: JsonPropertyName("created_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset CreatedTime,
+    [property: JsonPropertyName("last_modified_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset LastModifiedTime,
     [property: JsonPropertyName("creator_id")] long CreatorId,
     [property: JsonPropertyName("file_count")] int FileCount);

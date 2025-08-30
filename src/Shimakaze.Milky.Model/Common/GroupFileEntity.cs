@@ -20,7 +20,7 @@ public sealed record class GroupFileEntity(
     [property: JsonPropertyName("file_name")] string FileName,
     [property: JsonPropertyName("parent_folder_id")] string ParentFolderId,
     [property: JsonPropertyName("file_size")] long FileSize,
-    [property: JsonPropertyName("uploaded_time")] DateTimeOffset UploadedTime,
-    [property: JsonPropertyName("expire_time")] DateTimeOffset? ExpireTime,
+    [property: JsonPropertyName("uploaded_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset UploadedTime,
+    [property: JsonPropertyName("expire_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset? ExpireTime,
     [property: JsonPropertyName("uploader_id")] long UploaderId,
     [property: JsonPropertyName("downloaded_times")] int DownloadedTimes);

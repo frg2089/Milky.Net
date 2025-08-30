@@ -12,6 +12,6 @@ namespace Shimakaze.Milky.Model.Message;
 public sealed record class IncomingForwardedMessage(
     [property: JsonPropertyName("sender_name")] string SenderName,
     [property: JsonPropertyName("avatar_url")] string AvatarUrl,
-    [property: JsonPropertyName("time")] DateTimeOffset Time,
+    [property: JsonPropertyName("time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset Time,
     [property: JsonPropertyName("segments")] IncomingSegment[] Segments);
 

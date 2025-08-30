@@ -4,5 +4,5 @@ namespace Shimakaze.Milky.Model.Api.Message;
 
 public sealed record class SendMessageApiCommonOutput(
     [property: JsonPropertyName("message_seq")] long MessageSeq,
-    [property: JsonPropertyName("time")] DateTimeOffset Time
+    [property: JsonPropertyName("time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset Time
 );

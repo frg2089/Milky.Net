@@ -15,6 +15,6 @@ public sealed record class GroupAnnouncementEntity(
     [property: JsonPropertyName("group_id")] long GroupId,
     [property: JsonPropertyName("announcement_id")] string AnnouncementId,
     [property: JsonPropertyName("user_id")] long UserId,
-    [property: JsonPropertyName("time")] DateTimeOffset Time,
+    [property: JsonPropertyName("time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset Time,
     [property: JsonPropertyName("content")] string Content,
     [property: JsonPropertyName("image_url")] string? ImageUrl);

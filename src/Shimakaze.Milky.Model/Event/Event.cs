@@ -28,7 +28,7 @@ namespace Shimakaze.Milky.Model.Event;
 [JsonDerivedType(typeof(Event<GroupNudgeEvent>), "group_nudge")]
 [JsonDerivedType(typeof(Event<GroupFileUploadEvent>), "group_file_upload")]
 public abstract record class Event(
-    [property: JsonPropertyName("time")] DateTimeOffset Time,
+    [property: JsonPropertyName("time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset Time,
     [property: JsonPropertyName("self_id")] long SelfId);
 
 public sealed record class Event<T>(

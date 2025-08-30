@@ -17,11 +17,11 @@ namespace Shimakaze.Milky.Model.Message;
 public sealed record class GroupEssenceMessage(
     [property: JsonPropertyName("group_id")] long GroupId,
     [property: JsonPropertyName("message_seq")] long MessageSeq,
-    [property: JsonPropertyName("message_time")] DateTimeOffset MessageTime,
+    [property: JsonPropertyName("message_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset MessageTime,
     [property: JsonPropertyName("sender_id")] long SenderId,
     [property: JsonPropertyName("sender_name")] string SenderName,
     [property: JsonPropertyName("operator_id")] long OperatorId,
     [property: JsonPropertyName("operator_name")] string OperatorName,
-    [property: JsonPropertyName("operation_time")] DateTimeOffset OperationTime,
+    [property: JsonPropertyName("operation_time")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))] DateTimeOffset OperationTime,
     [property: JsonPropertyName("segments")] IncomingSegment[] Segments);
 
