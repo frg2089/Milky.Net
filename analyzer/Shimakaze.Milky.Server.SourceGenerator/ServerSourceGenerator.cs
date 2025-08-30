@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 
 using Humanizer;
 
@@ -44,14 +45,36 @@ public sealed class ServerSourceGenerator : IIncrementalGenerator
                         public interface IMilky{{name}}ApiEndpoints
                         {
                         """);
+                    registry.WriteLine($$"""
+                        using System.Diagnostics;
+                        using System.Text.Json;
+                        using System.Text.Json.Serialization.Metadata;
+
+                        using Shimakaze.Milky.Model.Api.{{name}};
+
+                        #nullable enable
+
+                        namespace Shimakaze.Milky.Server;
+                        
+                        /// <summary>
+                        /// {{endpoints.Name}}
+                        /// </summary>
+                        public static class Milky{{name}}ApiEndpoints
+                        {
+                            public static async Task<(bool Success, object? Result, JsonTypeInfo? Type)> TryInvokeAsync(
+                                this IMilky{{name}}ApiEndpoints endpoints,
+                                string api,
+                                JsonElement? json,
+                                CancellationToken cancellationToken = default)
+                            {
+                                switch(api)
+                                {
+                        """);
                     foreach (var endpoint in endpoints.Apis)
                     {
                         var parameter = !string.IsNullOrEmpty(endpoint.InputStruct)
                             ? $"{endpoint.InputStruct} input, "
                             : string.Empty;
-                        var argument = !string.IsNullOrEmpty(endpoint.InputStruct)
-                            ? "input"
-                            : "MilkyClient.EmptyObject";
                         var returnType = !string.IsNullOrEmpty(endpoint.OutputStruct)
                             ? $"Task<{endpoint.OutputStruct}>"
                             : "Task";
@@ -65,10 +88,38 @@ public sealed class ServerSourceGenerator : IIncrementalGenerator
                             [ApiEndpoint("{{endpoint.Endpoint}}")]
                             {{returnType}} {{endpoint.Endpoint.Pascalize()}}Async({{parameter}}CancellationToken cancellationToken = default);
                         """);
+
+                        registry.WriteLine($"case \"{endpoint.Endpoint}\":");
+                        registry.WriteLine("{");
+                        if (!string.IsNullOrEmpty(endpoint.InputStruct))
+                        {
+                            registry.WriteLine($"Debug.Assert(json is not null);");
+                            registry.WriteLine($"var input = json.Value.Deserialize(MilkyJsonSerializerContext.Default.{endpoint.InputStruct});");
+                            registry.WriteLine($"Debug.Assert(input is not null);");
+                        }
+                        if (!string.IsNullOrEmpty(endpoint.OutputStruct))
+                            registry.Write($"var output = ");
+                        registry.Write($"await endpoints.{endpoint.Endpoint.Pascalize()}Async(");
+                        if (!string.IsNullOrEmpty(endpoint.InputStruct))
+                            registry.Write("input, ");
+                        registry.WriteLine("cancellationToken);");
+                        if (!string.IsNullOrEmpty(endpoint.OutputStruct))
+                            registry.WriteLine($"return (true, output, MilkyJsonSerializerContext.Default.{endpoint.OutputStruct});");
+                        else
+                            registry.WriteLine($"return (true, null, null);");
+                        registry.WriteLine("}");
                     }
                     sw.WriteLine("}");
+                    registry.WriteLine("""
+                                    default:    
+                                        return (false, null, null);
+                                }
+                            }
+                        }
+                        """);
 
                     context.AddSource($"IMilky{name}ApiEndpoints.g.cs", sw.ToString());
+                    context.AddSource($"Milky{name}ApiEndpoints.g.cs", registry.ToString());
                 }
             });
     }

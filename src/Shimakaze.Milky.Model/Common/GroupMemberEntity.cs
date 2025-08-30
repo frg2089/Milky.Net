@@ -22,7 +22,7 @@ public sealed record class GroupMemberEntity(
     Sex Sex,
     [property: JsonPropertyName("group_id")] long GroupId,
     [property: JsonPropertyName("card")] string Card,
-    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("title")] string? Title,
     [property: JsonPropertyName("level")] int Level,
     [property: JsonPropertyName("role")] Role Role,
     [property: JsonPropertyName("join_time")] DateTimeOffset JoinTime,

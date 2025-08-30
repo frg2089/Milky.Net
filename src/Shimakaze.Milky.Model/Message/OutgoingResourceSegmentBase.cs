@@ -7,4 +7,4 @@ namespace Shimakaze.Milky.Model.Message;
 /// </summary>
 /// <param name="Uri">文件 URI，支持 file:// http(s):// base64:// 三种格式</param>
 public abstract record class OutgoingResourceSegmentBase(
-    [property: JsonPropertyName("uri")] string Uri);
+    [property: JsonPropertyName("uri")] Uri Uri);

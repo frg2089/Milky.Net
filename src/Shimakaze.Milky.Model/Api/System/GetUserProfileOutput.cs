@@ -17,11 +17,11 @@ namespace Shimakaze.Milky.Model.Api.System;
 /// <param name="School">学校</param>
 public sealed record class GetUserProfileOutput(
     [property: JsonPropertyName("nickname")] string Nickname,
-    [property: JsonPropertyName("qid")] string QID,
+    [property: JsonPropertyName("qid")] string? QID,
     [property: JsonPropertyName("age")] int Age,
     [property: JsonPropertyName("sex")] Sex Sex,
-    [property: JsonPropertyName("remark")] string Remark,
-    [property: JsonPropertyName("bio")] string Bio,
+    [property: JsonPropertyName("remark")] string? Remark,
+    [property: JsonPropertyName("bio")] string? Bio,
     [property: JsonPropertyName("level")] int Level,
     [property: JsonPropertyName("country")] string Country,
     [property: JsonPropertyName("city")] string City,
