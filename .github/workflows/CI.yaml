@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - master
+    tags:
+      - v*
     paths:
-      - .github/workflows/CI.yml      
+      - .github/workflows/CI.yaml      
       - .config/dotnet-tools.json
       - global.json
       - nuget.config
@@ -13,12 +15,18 @@ on:
       - Directory.Build.props
       - Directory.Build.targets
       - Directory.Packages.props
+      - "analyzer/**/*"
       - "src/**/*"
+      - "scripts/Make-Models.ps1"
+      - "tools/**/*"
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
   pull_request:
     branches:
       - master
     paths:
-      - .github/workflows/CI.yml      
+      - .github/workflows/CI.yaml      
       - .config/dotnet-tools.json
       - global.json
       - nuget.config
@@ -26,7 +34,13 @@ on:
       - Directory.Build.props
       - Directory.Build.targets
       - Directory.Packages.props
+      - "analyzer/**/*"
       - "src/**/*"
+      - "scripts/Make-Models.ps1"
+      - "tools/**/*"
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 jobs:
   build:
@@ -38,6 +52,19 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: 配置 .Net 环境
         uses: actions/setup-dotnet@v4
