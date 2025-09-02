@@ -104,21 +104,34 @@ jobs:
       discussions: write
     runs-on: ubuntu-latest
     steps:
+      - name: 签出仓库
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: ''
+
+      - name: 配置 .Net 环境
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+          cache: false
+
       - name: Download a Build Artifact
         uses: actions/download-artifact@v5
         with:
           name: nuget-packages
-          path: artifact
+          path: artifacts
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifact/*
+          files: artifacts/*
+
       - name: 推送 Nuget 包
         shell: pwsh
         continue-on-error: true
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
         run: |
-          Set-Location artifact
+          Set-Location artifacts
           dotnet nuget push *.nupkg -s nuget -k $env:NUGET_TOKEN --skip-duplicate
           Set-Location ..
