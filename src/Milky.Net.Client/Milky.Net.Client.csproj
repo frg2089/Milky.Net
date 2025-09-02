@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Net.Http.Json" />
+    <PackageReference Include="System.Net.ServerSentEvents" />
   </ItemGroup>
 
   <ItemGroup>
