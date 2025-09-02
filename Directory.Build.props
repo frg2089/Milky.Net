@@ -8,11 +8,22 @@
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
     <NoWarn Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">$(NoWarn);8629;8604</NoWarn>
   </PropertyGroup>
-  
+
   <Import Project="$(MSBuildThisFileDirectory)tools\schema-generator\out\Milky.props"/>
-  
+
   <PropertyGroup>
-    <PackageTags>Milky;Milky_$(MilkyVersion);MilkyType_$(MilkyPackageVersion)</PackageTags>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Authors>frg2089</Authors>
+    <PackageProjectUrl>https://github.com/frg2089/Shimakaze.Milky</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/frg2089/Shimakaze.Milky.git</RepositoryUrl>
+    <PackageReleaseNotes>
+      Milky Version: $(MilkyVersion)
+      @saltify/milky-types Version: $(MilkyTypesVersion)
+    </PackageReleaseNotes>
+    <Description>https://milky.ntqqrev.org/</Description>
+    <Copyright>Copyright © 2025 frg2089</Copyright>
+    <PackageTags>Milky</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
