@@ -1,0 +1,20 @@
+{
+  "name": "@shimakaze.milky/schema-generator",
+  "private": true,
+  "description": "",
+  "keywords": [],
+  "author": "frg2089",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "gen_types": "pnpm tsup && node ./dist/gen_types.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsup": "^8.5.0"
+  },
+  "dependencies": {
+    "@saltify/milky-types": "1.0.0-draft.12",
+    "zod": "^4.0.17"
+  }
+}

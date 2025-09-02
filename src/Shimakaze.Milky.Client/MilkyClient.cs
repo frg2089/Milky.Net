@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
+using Shimakaze.Milky.Model;
+
 namespace Shimakaze.Milky.Client;
 
 

@@ -3,6 +3,9 @@
     <Project Path="analyzer/Shimakaze.Milky.Client.SourceGenerator/Shimakaze.Milky.Client.SourceGenerator.csproj" />
     <Project Path="analyzer/Shimakaze.Milky.Server.SourceGenerator/Shimakaze.Milky.Server.SourceGenerator.csproj" />
   </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/Shimakaze.Milky.ModelGenerator/Shimakaze.Milky.ModelGenerator.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path=".gitignore" />

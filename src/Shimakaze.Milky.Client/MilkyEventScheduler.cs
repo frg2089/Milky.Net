@@ -1,91 +1,90 @@
-﻿using Shimakaze.Milky.Model.Event;
-using Shimakaze.Milky.Model.Message;
+﻿using Shimakaze.Milky.Model;
 
 namespace Shimakaze.Milky.Client;
 
-public delegate void ReceivedEventHandler<T>(Event<T> @event);
+public delegate void ReceivedEventHandler<T>(T @event) where T : Event;
 
 public sealed class MilkyEventScheduler
 {
-    public event ReceivedEventHandler<BotOfflineEvent>? BotOffline;
-    public event ReceivedEventHandler<IncomingMessage>? IncomingMessage;
-    public event ReceivedEventHandler<MessageRecallEvent>? MessageRecall;
-    public event ReceivedEventHandler<FriendRequestEvent>? FriendRequest;
-    public event ReceivedEventHandler<GroupJoinRequestEvent>? GroupJoinRequest;
-    public event ReceivedEventHandler<GroupInvitedJoinRequestEvent>? GroupInvitedJoinRequest;
-    public event ReceivedEventHandler<GroupInvitationEvent>? GroupInvitation;
-    public event ReceivedEventHandler<FriendNudgeEvent>? FriendNudge;
-    public event ReceivedEventHandler<FriendFileUploadEvent>? FriendFileUpload;
-    public event ReceivedEventHandler<GroupAdminChangeEvent>? GroupAdminChange;
-    public event ReceivedEventHandler<GroupEssenceMessageChangeEvent>? GroupEssenceMessageChange;
-    public event ReceivedEventHandler<GroupMemberIncreaseEvent>? GroupMemberIncrease;
-    public event ReceivedEventHandler<GroupMemberDecreaseEvent>? GroupMemberDecrease;
-    public event ReceivedEventHandler<GroupNameChangeEvent>? GroupNameChange;
-    public event ReceivedEventHandler<GroupMessageReactionEvent>? GroupMessageReaction;
-    public event ReceivedEventHandler<GroupMuteEvent>? GroupMute;
-    public event ReceivedEventHandler<GroupWholeMuteEvent>? GroupWholeMute;
-    public event ReceivedEventHandler<GroupNudgeEvent>? GroupNudge;
-    public event ReceivedEventHandler<GroupFileUploadEvent>? GroupFileUpload;
+    public event ReceivedEventHandler<BotOfflineUnionEvent>? BotOffline;
+    public event ReceivedEventHandler<MessageReceiveUnionEvent>? IncomingMessage;
+    public event ReceivedEventHandler<MessageRecallUnionEvent>? MessageRecall;
+    public event ReceivedEventHandler<FriendRequestUnionEvent>? FriendRequest;
+    public event ReceivedEventHandler<GroupJoinRequestUnionEvent>? GroupJoinRequest;
+    public event ReceivedEventHandler<GroupInvitedJoinRequestUnionEvent>? GroupInvitedJoinRequest;
+    public event ReceivedEventHandler<GroupInvitationUnionEvent>? GroupInvitation;
+    public event ReceivedEventHandler<FriendNudgeUnionEvent>? FriendNudge;
+    public event ReceivedEventHandler<FriendFileUploadUnionEvent>? FriendFileUpload;
+    public event ReceivedEventHandler<GroupAdminChangeUnionEvent>? GroupAdminChange;
+    public event ReceivedEventHandler<GroupEssenceMessageChangeUnionEvent>? GroupEssenceMessageChange;
+    public event ReceivedEventHandler<GroupMemberIncreaseUnionEvent>? GroupMemberIncrease;
+    public event ReceivedEventHandler<GroupMemberDecreaseUnionEvent>? GroupMemberDecrease;
+    public event ReceivedEventHandler<GroupNameChangeUnionEvent>? GroupNameChange;
+    public event ReceivedEventHandler<GroupMessageReactionUnionEvent>? GroupMessageReaction;
+    public event ReceivedEventHandler<GroupMuteUnionEvent>? GroupMute;
+    public event ReceivedEventHandler<GroupWholeMuteUnionEvent>? GroupWholeMute;
+    public event ReceivedEventHandler<GroupNudgeUnionEvent>? GroupNudge;
+    public event ReceivedEventHandler<GroupFileUploadUnionEvent>? GroupFileUpload;
 
     public void Received(Event @event)
     {
         switch (@event)
         {
-            case Event<BotOfflineEvent> typedEvent:
+            case BotOfflineUnionEvent typedEvent:
                 BotOffline?.Invoke(typedEvent);
                 break;
-            case Event<IncomingMessage> typedEvent:
+            case MessageReceiveUnionEvent typedEvent:
                 IncomingMessage?.Invoke(typedEvent);
                 break;
-            case Event<MessageRecallEvent> typedEvent:
+            case MessageRecallUnionEvent typedEvent:
                 MessageRecall?.Invoke(typedEvent);
                 break;
-            case Event<FriendRequestEvent> typedEvent:
+            case FriendRequestUnionEvent typedEvent:
                 FriendRequest?.Invoke(typedEvent);
                 break;
-            case Event<GroupJoinRequestEvent> typedEvent:
+            case GroupJoinRequestUnionEvent typedEvent:
                 GroupJoinRequest?.Invoke(typedEvent);
                 break;
-            case Event<GroupInvitedJoinRequestEvent> typedEvent:
+            case GroupInvitedJoinRequestUnionEvent typedEvent:
                 GroupInvitedJoinRequest?.Invoke(typedEvent);
                 break;
-            case Event<GroupInvitationEvent> typedEvent:
+            case GroupInvitationUnionEvent typedEvent:
                 GroupInvitation?.Invoke(typedEvent);
                 break;
-            case Event<FriendNudgeEvent> typedEvent:
+            case FriendNudgeUnionEvent typedEvent:
                 FriendNudge?.Invoke(typedEvent);
                 break;
-            case Event<FriendFileUploadEvent> typedEvent:
+            case FriendFileUploadUnionEvent typedEvent:
                 FriendFileUpload?.Invoke(typedEvent);
                 break;
-            case Event<GroupAdminChangeEvent> typedEvent:
+            case GroupAdminChangeUnionEvent typedEvent:
                 GroupAdminChange?.Invoke(typedEvent);
                 break;
-            case Event<GroupEssenceMessageChangeEvent> typedEvent:
+            case GroupEssenceMessageChangeUnionEvent typedEvent:
                 GroupEssenceMessageChange?.Invoke(typedEvent);
                 break;
-            case Event<GroupMemberIncreaseEvent> typedEvent:
+            case GroupMemberIncreaseUnionEvent typedEvent:
                 GroupMemberIncrease?.Invoke(typedEvent);
                 break;
-            case Event<GroupMemberDecreaseEvent> typedEvent:
+            case GroupMemberDecreaseUnionEvent typedEvent:
                 GroupMemberDecrease?.Invoke(typedEvent);
                 break;
-            case Event<GroupNameChangeEvent> typedEvent:
+            case GroupNameChangeUnionEvent typedEvent:
                 GroupNameChange?.Invoke(typedEvent);
                 break;
-            case Event<GroupMessageReactionEvent> typedEvent:
+            case GroupMessageReactionUnionEvent typedEvent:
                 GroupMessageReaction?.Invoke(typedEvent);
                 break;
-            case Event<GroupMuteEvent> typedEvent:
+            case GroupMuteUnionEvent typedEvent:
                 GroupMute?.Invoke(typedEvent);
                 break;
-            case Event<GroupWholeMuteEvent> typedEvent:
+            case GroupWholeMuteUnionEvent typedEvent:
                 GroupWholeMute?.Invoke(typedEvent);
                 break;
-            case Event<GroupNudgeEvent> typedEvent:
+            case GroupNudgeUnionEvent typedEvent:
                 GroupNudge?.Invoke(typedEvent);
                 break;
-            case Event<GroupFileUploadEvent> typedEvent:
+            case GroupFileUploadUnionEvent typedEvent:
                 GroupFileUpload?.Invoke(typedEvent);
                 break;
         }

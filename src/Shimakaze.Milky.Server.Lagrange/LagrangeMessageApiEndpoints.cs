@@ -1,11 +1,8 @@
-﻿using System.Threading;
-
-using Lagrange.Core;
+﻿using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
 using Lagrange.Core.Message;
 
-using Shimakaze.Milky.Model.Api.Message;
-using Shimakaze.Milky.Model.Message;
+using Shimakaze.Milky.Model;
 
 namespace Shimakaze.Milky.Server.Lagrange;
 
@@ -54,6 +51,12 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
             DateTimeOffset.FromUnixTimeSeconds(result.Timestamp));
     }
 
+    async Task<SendGroupMessageOutput> IMilkyMessageApiEndpoints.SendPrivateMessageAsync(SendPrivateMessageInput input, CancellationToken cancellationToken)
+    {
+        var tmp = await SendPrivateMessageAsync(input, cancellationToken);
+        return new(tmp.MessageSeq, tmp.Time);
+    }
+
 
     private async Task<MessageResult> SendMessageAsync(MessageBuilder builder, OutgoingSegment[] segments, CancellationToken cancellationToken = default)
     {
@@ -61,19 +64,19 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
         {
             switch (item)
             {
-                case OutgoingSegment<TextSegmentData> text:
+                case TextUnionOutgoingSegment text:
                     builder.Text(text.Data.Text);
                     break;
-                case OutgoingSegment<MentionSegmentData> mention:
+                case MentionUnionOutgoingSegment mention:
                     builder.Mention((uint)mention.Data.UserId);
                     break;
-                case OutgoingSegment<object> mention_all:
+                case MentionAllUnionOutgoingSegment mention_all:
                     break;
-                case OutgoingSegment<FaceSegmentData> face:
+                case FaceUnionOutgoingSegment face:
                     break;
-                case OutgoingSegment<ReplySegmentData> reply:
+                case ReplyUnionOutgoingSegment reply:
                     break;
-                case OutgoingSegment<ImageSegmentData> image:
+                case ImageUnionOutgoingSegment image:
                     {
                         var path = Path.GetTempFileName();
                         await using var fs = await fileFetcher.FetchFileAsync(image.Data.Uri, cancellationToken);
@@ -83,11 +86,11 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
                         builder.Image(path);
                     }
                     break;
-                case OutgoingSegment<OutgoingResourceSegmentBase> record:
+                case RecordUnionOutgoingSegment record:
                     break;
-                case OutgoingSegment<VideoSegmentData> video:
+                case VideoUnionOutgoingSegment video:
                     break;
-                case OutgoingSegment<ForwardSegmentData> forward:
+                case ForwardUnionOutgoingSegment forward:
                     break;
                 default:
                     throw new NotSupportedException();
@@ -96,4 +99,5 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
 
         return await bot.SendMessage(builder.Build());
     }
+
 }

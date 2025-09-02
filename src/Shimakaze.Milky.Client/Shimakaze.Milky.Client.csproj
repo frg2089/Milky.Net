@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <AdditionalFiles Include="..\..\ApiEndpoints.json" Link="ApiEndpoints.json" />
+    <AdditionalFiles Include="..\..\tools\schema-generator\out\ApiEndpoints.json" Link="ApiEndpoints.json" />
   </ItemGroup>
 
   <ItemGroup>

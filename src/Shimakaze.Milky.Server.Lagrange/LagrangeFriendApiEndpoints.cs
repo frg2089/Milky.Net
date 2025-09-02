@@ -1,7 +1,7 @@
 ﻿using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
 
-using Shimakaze.Milky.Model.Api.Friend;
+using Shimakaze.Milky.Model;
 
 namespace Shimakaze.Milky.Server.Lagrange;
 

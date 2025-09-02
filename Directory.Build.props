@@ -9,13 +9,15 @@
     <NoWarn Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">$(NoWarn);8629;8604</NoWarn>
   </PropertyGroup>
   
+  <Import Project="$(MSBuildThisFileDirectory)tools\schema-generator\out\Milky.props"/>
+  
   <PropertyGroup>
-    <MilkyVersion>1.0.0-draft.6</MilkyVersion>
-    <PackageTags>Milky;Milky_$(MilkyVersion)</PackageTags>
+    <PackageTags>Milky;Milky_$(MilkyVersion);MilkyType_$(MilkyPackageVersion)</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <AssemblyMetadata Include="MilkyVersion" Value="$(MilkyVersion)" />
+    <AssemblyMetadata Include="MilkyPackageVersion" Value="$(MilkyPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>

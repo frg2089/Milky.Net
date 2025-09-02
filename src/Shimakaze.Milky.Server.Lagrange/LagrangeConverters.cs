@@ -12,17 +12,17 @@ public static class LagrangeConverters
         BotUserInfo.GenderInfo.Female => Sex.Female,
         _ => Sex.Unknown
     };
-    public static QQProtocolType Convert(this Protocols protocols) => protocols switch
+    public static QqProtocolType Convert(this Protocols protocols) => protocols switch
     {
-        Protocols.Windows => QQProtocolType.Windows,
-        Protocols.MacOs => QQProtocolType.MacOS,
-        Protocols.Linux => QQProtocolType.Linux,
+        Protocols.Windows => QqProtocolType.Windows,
+        Protocols.MacOs => QqProtocolType.Macos,
+        Protocols.Linux => QqProtocolType.Linux,
         _ => throw new NotSupportedException(),
     };
     public static Role Convert(this GroupMemberPermission permission) => permission switch
     {
         GroupMemberPermission.Owner => Role.Owner,
-        GroupMemberPermission.Admin => Role.Administrator,
+        GroupMemberPermission.Admin => Role.Admin,
         GroupMemberPermission.Member => Role.Member,
         _ => throw new NotSupportedException(),
     };

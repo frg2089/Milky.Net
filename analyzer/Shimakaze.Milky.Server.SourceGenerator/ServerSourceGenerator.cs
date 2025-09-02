@@ -33,7 +33,7 @@ public sealed class ServerSourceGenerator : IIncrementalGenerator
                     using StringWriter registry = new();
 
                     sw.WriteLine($$"""
-                        using Shimakaze.Milky.Model.Api.{{name}};
+                        using Shimakaze.Milky.Model;
 
                         #nullable enable
 
@@ -50,7 +50,7 @@ public sealed class ServerSourceGenerator : IIncrementalGenerator
                         using System.Text.Json;
                         using System.Text.Json.Serialization.Metadata;
 
-                        using Shimakaze.Milky.Model.Api.{{name}};
+                        using Shimakaze.Milky.Model;
 
                         #nullable enable
 

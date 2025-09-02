@@ -31,7 +31,7 @@ public sealed class ClientSourceGenerator : IIncrementalGenerator
                     using StringWriter sw = new();
 
                     sw.WriteLine($$"""
-                        using Shimakaze.Milky.Model.Api.{{name}};
+                        using Shimakaze.Milky.Model;
 
                         #nullable enable
 

@@ -1,7 +1,6 @@
 ﻿
 using System.Diagnostics;
 using System.Text.Json.Serialization.Metadata;
-using System.Threading;
 
 using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
@@ -9,7 +8,7 @@ using Lagrange.Core.Common.Interface.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-using Shimakaze.Milky;
+using Shimakaze.Milky.Model;
 using Shimakaze.Milky.Server;
 using Shimakaze.Milky.Server.Lagrange;
 

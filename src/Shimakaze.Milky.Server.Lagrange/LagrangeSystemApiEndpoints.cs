@@ -5,8 +5,6 @@ using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
 
 using Shimakaze.Milky.Model;
-using Shimakaze.Milky.Model.Api.System;
-using Shimakaze.Milky.Model.Common;
 
 namespace Shimakaze.Milky.Server.Lagrange;
 
@@ -55,6 +53,10 @@ public class LagrangeSystemApiEndpoints(BotContext bot) : IMilkySystemApiEndpoin
         return new([.. result]);
     }
 
+    [Obsolete]
+    public Task<GetGroupListOutput> GetGroupListAsync(GetFriendListInput input, CancellationToken cancellationToken = default)
+        => GetGroupListAsync(new GetGroupListInput(input.NoCache));
+
     public Task<GetGroupMemberInfoOutput> GetGroupMemberInfoAsync(GetGroupMemberInfoInput input, CancellationToken cancellationToken = default)
         => throw new NotImplementedException();
 
@@ -67,7 +69,7 @@ public class LagrangeSystemApiEndpoints(BotContext bot) : IMilkySystemApiEndpoin
             Sex.Unknown,
             input.GroupId,
             i.MemberName,
-            i.SpecialTitle,
+            i.SpecialTitle ?? string.Empty,
             (int)i.GroupLevel,
             i.Permission.Convert(),
             i.JoinTime,
@@ -98,15 +100,14 @@ public class LagrangeSystemApiEndpoints(BotContext bot) : IMilkySystemApiEndpoin
         Debug.Assert(result is not null);
         return new(
             result.Nickname,
-            result.Qid,
+            result.Qid ?? string.Empty,
             (int)result.Age,
             result.Gender.Convert(),
-            null, // TODO: 获取备注
-            null, // TODO: 获取个性签名
+            string.Empty, // TODO: 获取备注
+            string.Empty, // TODO: 获取个性签名
             (int)result.Level,
             result.Country,
             result.City,
             result.School);
     }
-
 }
