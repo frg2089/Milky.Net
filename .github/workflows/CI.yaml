@@ -11,7 +11,7 @@ on:
       - .config/dotnet-tools.json
       - global.json
       - nuget.config
-      - Shimakaze.Milky.slnx
+      - Milky.Net.slnx
       - Directory.Build.props
       - Directory.Build.targets
       - Directory.Packages.props
@@ -30,7 +30,7 @@ on:
       - .config/dotnet-tools.json
       - global.json
       - nuget.config
-      - Shimakaze.Milky.slnx
+      - Milky.Net.slnx
       - Directory.Build.props
       - Directory.Build.targets
       - Directory.Packages.props

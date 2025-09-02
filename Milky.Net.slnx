@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Analyzers/">
+    <Project Path="analyzer/Milky.Net.Client.SourceGenerator/Milky.Net.Client.SourceGenerator.csproj" />
+    <Project Path="analyzer/Milky.Net.Server.SourceGenerator/Milky.Net.Server.SourceGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/Milky.Net.ModelGenerator/Milky.Net.ModelGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="nuget.config" />
+  </Folder>
+  <Project Path="src/Milky.Net.Client/Milky.Net.Client.csproj" />
+  <Project Path="src/Milky.Net.Model/Milky.Net.Model.csproj" />
+  <Project Path="src/Milky.Net.Server.Lagrange/Milky.Net.Server.Lagrange.csproj" />
+  <Project Path="src/Milky.Net.Server/Milky.Net.Server.csproj" />
+</Solution>

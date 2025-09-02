@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Shimakaze.Milky.Client.SourceGenerator": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Shimakaze.Milky.Client\\Shimakaze.Milky.Client.csproj"
-    }
-  }
-}

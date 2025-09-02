@@ -15,8 +15,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Authors>frg2089</Authors>
-    <PackageProjectUrl>https://github.com/frg2089/Shimakaze.Milky</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/frg2089/Shimakaze.Milky.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/frg2089/Milky.Net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/frg2089/Milky.Net.git</RepositoryUrl>
     <PackageReleaseNotes>
       Milky Version: $(MilkyVersion)
       @saltify/milky-types Version: $(MilkyTypesVersion)
@@ -24,8 +24,16 @@
     <Description>https://milky.ntqqrev.org/</Description>
     <Copyright>Copyright © 2025 frg2089</Copyright>
     <PackageTags>Milky</PackageTags>
+    <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)ReadMe.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  
   <ItemGroup>
     <AssemblyMetadata Include="MilkyVersion" Value="$(MilkyVersion)" />
     <AssemblyMetadata Include="MilkyPackageVersion" Value="$(MilkyPackageVersion)" />

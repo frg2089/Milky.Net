@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Milky.Net.Server.Lagrange": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:64562;http://localhost:64563"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Milky.Net.Client.SourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\Milky.Net.Client\\Milky.Net.Client.csproj"
+    }
+  }
+}
