@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - develop
     tags:
       - v*
     paths:
@@ -25,6 +26,7 @@ on:
   pull_request:
     branches:
       - master
+      - develop
     paths:
       - .github/workflows/CI.yaml      
       - .config/dotnet-tools.json
