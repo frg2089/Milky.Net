@@ -56,7 +56,11 @@ public sealed partial class MilkyClient
     public async Task ReceivingEventUsingWebSocketAsync(Uri uri, CancellationToken cancellationToken = default)
     {
         using ClientWebSocket ws = new();
+#if NET5_0_OR_GREATER
+        await ws.ConnectAsync(uri, _client, cancellationToken);
+#else
         await ws.ConnectAsync(uri, cancellationToken);
+#endif
 
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         await using MemoryStream ms = new();
