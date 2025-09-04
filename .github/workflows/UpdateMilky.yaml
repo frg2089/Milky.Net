@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: 签出仓库
         uses: actions/checkout@v5
@@ -31,28 +33,48 @@ jobs:
           cache: pnpm
 
       - name: 获取最新版本
+        id: fetch
+        # 这该死的 pnpm outdated 在发现错误时会报 1 退出码
+        # https://github.com/pnpm/pnpm/pull/2718
+        continue-on-error: true
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |-
           $OutdatedList = pnpm outdated '@saltify/milky-types' --json --filter=@milky.net/schema-generator | ConvertFrom-Json
           $Info = $OutdatedList.'@saltify/milky-types'
-          if ($Info)
-          {
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            pnpm add "@saltify/milky-types@$($Info.latest)" --filter=@milky.net/schema-generator
-            git switch `
-              --force-create "update/$($Info.latest)"
-            git add `
-              tools/schema-generator/package.json `
-              pnpm-lock.yaml
-            git commit `
-              --message="Update @saltify/milky-types`n`nCurrent: $($Info.wanted)`nLatest: $($Info.latest)" `
-              --signoff
-            git push origin "update/$($Info.latest)" --force
+          "outdated=$(!!$Info)" >> $env:GITHUB_OUTPUT
+          "latest=$($Info.latest)" >> $env:GITHUB_OUTPUT
+          "current=$($Info.wanted)" >> $env:GITHUB_OUTPUT
+
+      - name: 创建分支
+        if: ${{ steps.fetch.outputs.outdated == 'True' }}
+        shell: pwsh
+        run: |-
+          git switch --force-create 'update/${{ steps.fetch.outputs.latest }}'
+          git push origin 'update/${{ steps.fetch.outputs.latest }}' --force
+
+      - name: 更新 @saltify/milky-types
+        if: ${{ steps.fetch.outputs.outdated == 'True' }}
+        shell: pwsh
+        run: pnpm add "@saltify/milky-types@${{ steps.fetch.outputs.latest }}" --filter=@milky.net/schema-generator
+
+      - name: 提交和推送
+        if: ${{ steps.fetch.outputs.outdated == 'True' }}
+        shell: pwsh
+        run: |-
+          pnpm dlx @pirafrank/github-commit-sign commit `
+            --owner '${{ github.repository_owner}}' `
+            --repo '${{ github.repository }}' `
+            --branch 'update/${{ steps.fetch.outputs.latest }}' `
+            --changed 'tools/schema-generator/package.json' `
+            --changed 'pnpm-lock.yaml' `
+            --commitMessage 'Update @saltify/milky-types' `
+            --commitDescription 'Current: ${{ steps.fetch.outputs.wanted }}`nLatest: ${{ steps.fetch.outputs.latest }}'
+
+      - name: 创建拉取请求
+        if: ${{ steps.fetch.outputs.outdated == 'True' }}
+        shell: pwsh
+        run: |-
             gh pr create `
-              --title "Update @saltify/milky-types to $($Info.latest)" `
-              --body "Current: $($Info.wanted)`n`nLatest: $($Info.latest)" `
+              --title "Update @saltify/milky-types to ${{ steps.fetch.outputs.latest }}" `
+              --body "Current: ${{ steps.fetch.outputs.wanted }}`n`nLatest: ${{ steps.fetch.outputs.latest }}" `
               --base 'master'
-          }
