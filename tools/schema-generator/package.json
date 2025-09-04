@@ -14,7 +14,7 @@
     "tsup": "^8.5.0"
   },
   "dependencies": {
-    "@saltify/milky-types": "1.0.0-draft.12",
+    "@saltify/milky-types": "1.0.0-draft.13",
     "zod": "^4.0.17"
   }
 }
