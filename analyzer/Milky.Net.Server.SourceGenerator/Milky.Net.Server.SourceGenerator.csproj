@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Milky.Net.SourceGenerator.Common\*.cs" />
+    <Compile Include="..\Milky.Net.SourceGenerator.Common\*.cs" Link="Common\%(Filename).cs" />
   </ItemGroup>
 
   <PropertyGroup>

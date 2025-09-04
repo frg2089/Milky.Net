@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <AdditionalFiles Include="..\..\tools\schema-generator\out\ApiEndpoints.json" Link="ApiEndpoints.json" />
+    <AdditionalFiles Include="..\..\tools\schema-generator\out\MilkyTypes.json" Link="MilkyTypes.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -189,7 +189,7 @@ Object.entries(apiCategories).forEach(([categoryName, category]) => {
 });
 
 await fs.promises.mkdir(path.resolve('out'), { recursive: true });
-fs.promises.writeFile(path.resolve('out', "Types.json"), JSON.stringify(types, null, 2));
+fs.promises.writeFile(path.resolve('out', "MilkyTypes.json"), JSON.stringify(types, null, 2));
 fs.promises.writeFile(
   path.resolve('out', "ApiEndpoints.json"),
   JSON.stringify(ApiEndpoints, null, 2)
