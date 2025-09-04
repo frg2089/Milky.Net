@@ -1,0 +1,58 @@
+name: 检查 @saltify/milky-types 更新
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch: 
+
+jobs:
+  check:
+    name: 检查更新
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: 签出仓库
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: |-
+            tools/schema-generator
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+          
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          cache: pnpm
+
+      - name: 获取最新版本
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |-
+          $OutdatedList = pnpm outdated '@saltify/milky-types' --json --filter=@milky.net/schema-generator | ConvertFrom-Json
+          $Info = $OutdatedList.'@saltify/milky-types'
+          if ($Info)
+          {
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            pnpm add "@saltify/milky-types@$($Info.latest)" --filter=@milky.net/schema-generator
+            git switch `
+              --force-create "update/$($Info.latest)"
+            git add `
+              tools/schema-generator/package.json `
+              pnpm-lock.yaml
+            git commit `
+              --message="Update @saltify/milky-types`n`nCurrent: $($Info.wanted)`nLatest: $($Info.latest)" `
+              --signoff
+            git push origin "update/$($Info.latest)" --force
+            gh pr create `
+              --title "Update @saltify/milky-types to $($Info.latest)" `
+              --body "Current: $($Info.wanted)`n`nLatest: $($Info.latest)" `
+              --base 'master'
+          }
