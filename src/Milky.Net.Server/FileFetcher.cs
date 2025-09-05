@@ -1,4 +1,4 @@
-﻿namespace Milky.Net.Server.Lagrange;
+﻿namespace Milky.Net.Server;
 
 public class FileFetcher(HttpClient httpClient) : IFileFetcher
 {
@@ -6,8 +6,6 @@ public class FileFetcher(HttpClient httpClient) : IFileFetcher
 
     public async Task<Stream> FetchFileAsync(Uri fileUri, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(fileUri);
-
         return fileUri.Scheme switch
         {
             "file" => await OpenFileAsync(fileUri, cancellationToken),
@@ -61,7 +59,11 @@ public class FileFetcher(HttpClient httpClient) : IFileFetcher
             response.EnsureSuccessStatusCode();
 
             // 返回响应体流，由调用方释放
+#if NET8_0_OR_GREATER
             var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+#else
+            var stream = await response.Content.ReadAsStreamAsync();
+#endif
 
             return stream;
         }

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lagrange.Core" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 
   <ItemGroup>

@@ -26,20 +26,29 @@ public sealed class ApiEndpointsClientGenerator : IIncrementalGenerator
                 if (map is null)
                     return;
 
-                using StringWriter constructor = new();
-                using StringWriter properties = new();
+                using StringWriter constructor = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 2)
+                };
+                using StringWriter properties = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 1)
+                };
                 foreach (var (category, endpoints) in map)
                 {
                     var name = category.Pascalize();
                     var className = $"Milky{name}Client";
-                    constructor.WriteLine($"        {name} = new(this);");
+                    constructor.WriteLine($"{name} = new(this);");
                     properties.WriteLine($$"""
 
                         /// <inheritdoc cref="{{className}}" />
                         public {{className}} {{name}} { get; }
-                    """);
+                        """);
 
-                    using StringWriter sw = new();
+                    using StringWriter sw = new()
+                    {
+                        NewLine = "\r\n" + new string(' ', 4 * 1)
+                    };
 
                     foreach (var endpoint in endpoints.Apis)
                     {
@@ -64,7 +73,7 @@ public sealed class ApiEndpointsClientGenerator : IIncrementalGenerator
                                     MilkyJsonSerializerContext.Default.{{endpoint.InputStruct ?? "Object"}},
                                     MilkyJsonSerializerContext.Default.{{endpoint.OutputStruct ?? "Object"}},
                                     cancellationToken: cancellationToken);
-                        """);
+                            """);
                     }
 
                     context.AddSource(
@@ -86,7 +95,7 @@ public sealed class ApiEndpointsClientGenerator : IIncrementalGenerator
 
                             internal {{className}}(MilkyClient client)
                                 => _client = client;
-                        {{sw}}
+                            {{sw}}
                         }
                         """);
                 }
@@ -112,9 +121,9 @@ public sealed class ApiEndpointsClientGenerator : IIncrementalGenerator
                             _client = client;
                             _middleware = middleware?.Reverse().ToImmutableArray() ?? [];
                             Events = new(this);
-                    {{constructor}}
+                            {{constructor}}
                         }
-                    {{properties}}
+                        {{properties}}
                     }
                     """);
             });

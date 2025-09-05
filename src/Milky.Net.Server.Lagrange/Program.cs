@@ -1,29 +1,36 @@
-﻿
-using System.Diagnostics;
-using System.Text.Json.Serialization.Metadata;
+﻿using System.Net.Mime;
+using System.Text.Json;
 
 using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Options;
 
 using Milky.Net.Model;
 using Milky.Net.Server;
 using Milky.Net.Server.Lagrange;
+using Milky.Net.Server.Lagrange.ConsoleImage.Sixel;
+
+using SixLabors.ImageSharp;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddWebSockets(options => builder.Configuration.Bind("WebSockets", options));
 builder.Services.AddLagrange();
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IFileFetcher, FileFetcher>();
-builder.Services.AddTransient<LagrangeFileApiEndpoints>();
-builder.Services.AddTransient<LagrangeFriendApiEndpoints>();
-builder.Services.AddTransient<LagrangeGroupApiEndpoints>();
-builder.Services.AddTransient<LagrangeMessageApiEndpoints>();
-builder.Services.AddTransient<LagrangeSystemApiEndpoints>();
+builder.Services.AddTransient<IMilkyFileApiEndpoints, LagrangeFileApiEndpoints>();
+builder.Services.AddTransient<IMilkyFriendApiEndpoints, LagrangeFriendApiEndpoints>();
+builder.Services.AddTransient<IMilkyGroupApiEndpoints, LagrangeGroupApiEndpoints>();
+builder.Services.AddTransient<IMilkyMessageApiEndpoints, LagrangeMessageApiEndpoints>();
+builder.Services.AddTransient<IMilkySystemApiEndpoints, LagrangeSystemApiEndpoints>();
+builder.Services.AddTransient<MilkyApiEndpoints>();
 
 var app = builder.Build();
+
+app.UseWebSockets();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -33,58 +40,82 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/event", async (
     HttpContext context,
-    [FromServices] BotContext bot,
+    [FromServices] LagrangeEventScheduler eventScheduler,
     CancellationToken cancellationToken) =>
 {
-    using LagrangeEventManager manager = new(bot, context, cancellationToken);
-    await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+    if (context.WebSockets.IsWebSocketRequest)
+    {
+        // WebSocket 请求
+        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        eventScheduler.OnReceived += async (data, jsonTypeInfo) =>
+        {
+            await using MemoryStream ms = new();
+            await JsonSerializer.SerializeAsync(ms, data, jsonTypeInfo, cancellationToken);
+            await ms.FlushAsync(cancellationToken);
+            ms.Seek(0, SeekOrigin.Begin);
+            await webSocket.SendAsync(ms.ToArray(), System.Net.WebSockets.WebSocketMessageType.Text, false, cancellationToken);
+        };
+        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+    }
+    else
+    {
+        // Server-Sent Events 请求
+        context.Response.StatusCode = StatusCodes.Status206PartialContent;
+        context.Response.ContentType = MediaTypeNames.Text.EventStream;
+        context.Response.Headers.CacheControl = "no-cache";
+        context.Response.Headers.Connection = "keep-alive";
+        eventScheduler.OnReceived += async (data, jsonTypeInfo) =>
+        {
+            await using MemoryStream ms = new();
+            await JsonSerializer.SerializeAsync(ms, data, jsonTypeInfo, cancellationToken);
+            await ms.FlushAsync(cancellationToken);
+            ms.Seek(0, SeekOrigin.Begin);
+            using StreamReader sr = new(ms);
+            while (!sr.EndOfStream)
+            {
+                var line = await sr.ReadLineAsync(cancellationToken);
+                if (string.IsNullOrEmpty(line))
+                    break;
+
+                await context.Response.WriteAsync($"data: {line}\n", cancellationToken);
+            }
+            await context.Response.WriteAsync($"\n", cancellationToken);
+            await context.Response.Body.FlushAsync(cancellationToken);
+        };
+        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+    }
 });
 
 
 app.MapPost("/api/{endpoint}", async (
     HttpContext context,
     [FromRoute] string endpoint,
-    [FromServices] LagrangeFileApiEndpoints file,
-    [FromServices] LagrangeFriendApiEndpoints friend,
-    [FromServices] LagrangeGroupApiEndpoints group,
-    [FromServices] LagrangeMessageApiEndpoints message,
-    [FromServices] LagrangeSystemApiEndpoints system,
+    [FromServices] MilkyApiEndpoints endpoints,
     CancellationToken cancellationToken) =>
 {
-    Debug.Assert(context.Request.HasJsonContentType());
-    var json = await context.Request.ReadFromJsonAsync(MilkyJsonSerializerContext.Default.NullableJsonElement, cancellationToken);
-    var (status, result, typeInfo) = await MatchAsync();
-    if (!status)
+    if (!endpoints.CanInvoke(endpoint))
     {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        await TypedResults.NotFound(endpoint).ExecuteAsync(context);
         return;
     }
 
+    if (!context.Request.HasJsonContentType())
+    {
+        await TypedResults.BadRequest("Invalid content type").ExecuteAsync(context);
+        return;
+    }
+
+    var json = await context.Request.ReadFromJsonAsync(MilkyJsonSerializerContext.Default.NullableJsonElement, cancellationToken);
+
+    var result = await endpoints.InvokeAsync(endpoint, json, cancellationToken);
+
     context.Response.StatusCode = StatusCodes.Status200OK;
-    if (typeInfo is not null)
-        await context.Response.WriteAsJsonAsync(result, typeInfo, cancellationToken: cancellationToken);
+    if (result is not null)
+        await context.Response.WriteAsJsonAsync(result.Value.Result, result.Value.Type, cancellationToken: cancellationToken);
     else
         await context.Response.WriteAsJsonAsync(new(), MilkyJsonSerializerContext.Default.Object, cancellationToken: cancellationToken);
 
     await context.Response.CompleteAsync();
-
-    async Task<(bool Success, object? Result, JsonTypeInfo? Type)> MatchAsync()
-    {
-        var tmp = await file.TryInvokeAsync(endpoint, json, cancellationToken);
-        if (tmp.Success)
-            return tmp;
-        tmp = await friend.TryInvokeAsync(endpoint, json, cancellationToken);
-        if (tmp.Success)
-            return tmp;
-        tmp = await group.TryInvokeAsync(endpoint, json, cancellationToken);
-        if (tmp.Success)
-            return tmp;
-        tmp = await message.TryInvokeAsync(endpoint, json, cancellationToken);
-        if (tmp.Success)
-            return tmp;
-        tmp = await system.TryInvokeAsync(endpoint, json, cancellationToken);
-        return tmp;
-    }
 });
 
 await using (var scope = app.Services.CreateAsyncScope())
@@ -98,9 +129,43 @@ await using (var scope = app.Services.CreateAsyncScope())
     }
     else
     {
-        var result = await bot.FetchQrCode();
+        var task = bot.FetchQrCode();
 
-        app.Logger.LogInformation("二维码链接: {url}", result.Value.Url);
+        using StringWriter sw = new();
+        Console.Write("\e[c");
+        while (true)
+        {
+            var key = Console.ReadKey(true);
+            if (key.KeyChar is 'c')
+                break;
+
+            sw.Write(key.KeyChar);
+        }
+        var codes = sw.ToString()[3..].Split(';');
+
+        var result = await task;
+        if (codes.Contains("4"))
+        {
+            using var img = Image.Load(result.Value.QrCode);
+            var sixel = Sixel.Process(img);
+
+            app.Logger.LogInformation(
+                """
+                请扫码二维码登录
+                {img}
+                """,
+                sixel);
+        }
+        else
+        {
+            app.Logger.LogInformation("""
+                当前终端不支持 Sixel 协议展示图像，请手动生成二维码
+                二维码链接: {url}
+                """,
+                result.Value.Url);
+        }
+
+
 
         await bot.LoginByQrCode();
     }

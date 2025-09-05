@@ -28,20 +28,26 @@ public sealed class EventSchedulerGenerator : IIncrementalGenerator
                 if (!map.TryGetValue("Event", out var info) || info is not UnionTypeInfoData union)
                     return;
 
-                using StringWriter eventWriter = new();
-                using StringWriter switchWriter = new();
+                using StringWriter eventWriter = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 1)
+                };
+                using StringWriter switchWriter = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 3)
+                };
                 foreach (var type in union.Types.Select(i => (i.Key.Pascalize(), i.Value.Pascalize())))
                 {
                     eventWriter.WriteLine($"""
                     
                         /// <inheritdoc cref="{type.Item2}" />
                         public event ReceivedEventHandler<{type.Item2}>? {type.Item1};
-                    """);
+                        """);
                     switchWriter.WriteLine($"""
-                                case {type.Item2} e:
-                                    {type.Item1}?.Invoke(_client, e);
-                                    return;
-                    """);
+                        case {type.Item2} e:
+                            {type.Item1}?.Invoke(_client, e);
+                            return;
+                        """);
                 }
 
                 context.AddSource(
@@ -59,7 +65,7 @@ public sealed class EventSchedulerGenerator : IIncrementalGenerator
                         {
                             switch (@event)
                             {
-                    {{switchWriter}}
+                                {{switchWriter}}
                             }
                         }
                     }

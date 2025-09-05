@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 using Humanizer;
 
@@ -26,50 +25,35 @@ public sealed class ServerSourceGenerator : IIncrementalGenerator
                 if (map is null)
                     return;
 
+                List<string> registryConstructorArguments = [];
+                List<string> endpointNames = [];
+                using StringWriter registryConstructor = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 2)
+                };
+                using StringWriter registryFields = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 1)
+                };
+                using StringWriter registrySwitchCases = new()
+                {
+                    NewLine = "\r\n" + new string(' ', 4 * 3)
+                };
                 foreach (var (category, endpoints) in map)
                 {
-                    var name = char.ToUpperInvariant(category[0]) + category[1..];
-                    using StringWriter sw = new();
-                    using StringWriter registry = new();
+                    var pascalCategory = category.Pascalize();
+                    var camelCategory = pascalCategory.Camelize();
+                    var fieldName = $"_{camelCategory}";
+                    var typeName = $"IMilky{pascalCategory}ApiEndpoints";
 
-                    sw.WriteLine($$"""
-                        using Milky.Net.Model;
+                    registryFields.WriteLine($"private readonly {typeName} {fieldName};");
+                    registryConstructorArguments.Add($"{typeName} {camelCategory}");
+                    registryConstructor.WriteLine($"{fieldName} = {camelCategory};");
 
-                        #nullable enable
-
-                        namespace Milky.Net.Server;
-                        
-                        /// <summary>
-                        /// {{endpoints.Name}}
-                        /// </summary>
-                        public interface IMilky{{name}}ApiEndpoints
-                        {
-                        """);
-                    registry.WriteLine($$"""
-                        using System.Diagnostics;
-                        using System.Text.Json;
-                        using System.Text.Json.Serialization.Metadata;
-
-                        using Milky.Net.Model;
-
-                        #nullable enable
-
-                        namespace Milky.Net.Server;
-                        
-                        /// <summary>
-                        /// {{endpoints.Name}}
-                        /// </summary>
-                        public static class Milky{{name}}ApiEndpoints
-                        {
-                            public static async Task<(bool Success, object? Result, JsonTypeInfo? Type)> TryInvokeAsync(
-                                this IMilky{{name}}ApiEndpoints endpoints,
-                                string api,
-                                JsonElement? json,
-                                CancellationToken cancellationToken = default)
-                            {
-                                switch(api)
-                                {
-                        """);
+                    using StringWriter sw = new()
+                    {
+                        NewLine = "\r\n" + new string(' ', 4 * 1)
+                    };
                     foreach (var endpoint in endpoints.Apis)
                     {
                         var parameter = !string.IsNullOrEmpty(endpoint.InputStruct)
@@ -81,46 +65,106 @@ public sealed class ServerSourceGenerator : IIncrementalGenerator
 
                         sw.WriteLine(
                         $$"""
+
                             /// <summary>
                             /// {{endpoint.Description}} <br />
                             /// 详见文档 <see href="https://milky.ntqqrev.org/api/{{category}}#{{endpoint.Endpoint}}"/>
                             /// </summary>
                             [ApiEndpoint("{{endpoint.Endpoint}}")]
                             {{returnType}} {{endpoint.Endpoint.Pascalize()}}Async({{parameter}}CancellationToken cancellationToken = default);
-                        """);
+                            """);
 
-                        registry.WriteLine($"case \"{endpoint.Endpoint}\":");
-                        registry.WriteLine("{");
+                        endpointNames.Add(endpoint.Endpoint);
+                        registrySwitchCases.WriteLine($"case \"{endpoint.Endpoint}\":");
+                        registrySwitchCases.NewLine = "\r\n" + new string(' ', 4 * 4);
+                        registrySwitchCases.WriteLine("{");
                         if (!string.IsNullOrEmpty(endpoint.InputStruct))
                         {
-                            registry.WriteLine($"Debug.Assert(json is not null);");
-                            registry.WriteLine($"var input = json.Value.Deserialize(MilkyJsonSerializerContext.Default.{endpoint.InputStruct});");
-                            registry.WriteLine($"Debug.Assert(input is not null);");
+                            registrySwitchCases.WriteLine($"Debug.Assert(json is not null);");
+                            registrySwitchCases.WriteLine($"var input = json.Value.Deserialize(MilkyJsonSerializerContext.Default.{endpoint.InputStruct});");
+                            registrySwitchCases.WriteLine($"Debug.Assert(input is not null);");
                         }
                         if (!string.IsNullOrEmpty(endpoint.OutputStruct))
-                            registry.Write($"var output = ");
-                        registry.Write($"await endpoints.{endpoint.Endpoint.Pascalize()}Async(");
+                            registrySwitchCases.Write($"var output = ");
+                        registrySwitchCases.Write($"await {fieldName}.{endpoint.Endpoint.Pascalize()}Async(");
                         if (!string.IsNullOrEmpty(endpoint.InputStruct))
-                            registry.Write("input, ");
-                        registry.WriteLine("cancellationToken);");
+                            registrySwitchCases.Write("input, ");
+                        registrySwitchCases.WriteLine("cancellationToken);");
+                        registrySwitchCases.NewLine = "\r\n" + new string(' ', 4 * 3);
                         if (!string.IsNullOrEmpty(endpoint.OutputStruct))
-                            registry.WriteLine($"return (true, output, MilkyJsonSerializerContext.Default.{endpoint.OutputStruct});");
+                            registrySwitchCases.WriteLine($"return (output, MilkyJsonSerializerContext.Default.{endpoint.OutputStruct});");
                         else
-                            registry.WriteLine($"return (true, null, null);");
-                        registry.WriteLine("}");
+                            registrySwitchCases.WriteLine($"return null;");
+                        registrySwitchCases.WriteLine("}");
                     }
-                    sw.WriteLine("}");
-                    registry.WriteLine("""
-                                    default:    
-                                        return (false, null, null);
-                                }
-                            }
+
+                    context.AddSource(
+                        $"{typeName}.g.cs",
+                        $$"""
+                        using Milky.Net.Model;
+
+                        #nullable enable
+
+                        namespace Milky.Net.Server;
+                        
+                        /// <summary>
+                        /// {{endpoints.Name}}
+                        /// </summary>
+                        public interface {{typeName}}
+                        {{{sw}}
                         }
                         """);
-
-                    context.AddSource($"IMilky{name}ApiEndpoints.g.cs", sw.ToString());
-                    context.AddSource($"Milky{name}ApiEndpoints.g.cs", registry.ToString());
                 }
+                context.AddSource(
+                    "MilkyApiEndpoints.g.cs",
+                    $$"""
+                    using System.Diagnostics;
+                    using System.Text.Json;
+                    using System.Text.Json.Serialization.Metadata;
+                    
+                    using Milky.Net.Model;
+                    
+                    #nullable enable
+                    
+                    namespace Milky.Net.Server;
+
+                    /// <summary>
+                    /// Milky API 端点
+                    /// </summary>
+                    public partial class MilkyApiEndpoints
+                    {
+                        {{registryFields}}
+
+                        /// <summary>
+                        /// 创建 Milky API 端点处理器
+                        /// </summary>
+                        public MilkyApiEndpoints({{string.Join(", ", registryConstructorArguments)}})
+                        {
+                            {{registryConstructor}}
+                        }
+                    
+                        /// <summary>
+                        /// 尝试匹配 API 端点
+                        /// </summary>
+                        public bool CanInvoke(string endpoint) => endpoint switch
+                        {
+                            {{string.Join(" or ", endpointNames.Select(i => $"\"{i}\""))}} => true,
+                            _ => false,
+                        };
+
+                        /// <summary>
+                        /// 调度 API 请求
+                        /// </summary>
+                        public async Task<(object Result, JsonTypeInfo Type)?> InvokeAsync(string endpoint, JsonElement? json, CancellationToken cancellationToken = default)
+                        {
+                            switch(endpoint)
+                            {
+                                {{registrySwitchCases}}
+                            }
+                            return null;
+                        }
+                    }
+                    """);
             });
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Net.Mime;
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
+﻿using System.Text.Json.Serialization.Metadata;
 
 using Lagrange.Core;
 using Lagrange.Core.Event.EventArg;
@@ -13,16 +11,14 @@ using Lagrange = Lagrange.Core.Event.EventArg;
 
 namespace Milky.Net.Server.Lagrange;
 
-public sealed class LagrangeEventManager : IDisposable
+public sealed class LagrangeEventScheduler : IDisposable
 {
     private readonly BotContext _bot;
-    private readonly HttpContext _context;
-    private readonly CancellationToken _cancellationToken;
-    public LagrangeEventManager(BotContext bot, HttpContext context, CancellationToken cancellationToken = default)
+    public event Func<object, JsonTypeInfo, Task>? OnReceived;
+
+    public LagrangeEventScheduler(BotContext bot)
     {
         _bot = bot;
-        _context = context;
-        _cancellationToken = cancellationToken;
         _bot.Invoker.OnBotOnlineEvent += BotOnlineEvent;
         _bot.Invoker.OnBotOfflineEvent += BotOfflineEventAsync;
         _bot.Invoker.OnBotLogEvent += BotLogEvent;
@@ -48,34 +44,13 @@ public sealed class LagrangeEventManager : IDisposable
         _bot.Invoker.OnGroupEssenceEvent += GroupEssenceEvent;
         _bot.Invoker.OnGroupReactionEvent += GroupReactionEvent;
         _bot.Invoker.OnGroupNameChangeEvent += GroupNameChangeEvent;
-
-
-        context.Response.StatusCode = StatusCodes.Status206PartialContent;
-        context.Response.ContentType = MediaTypeNames.Text.EventStream;
-        context.Response.Headers.CacheControl = "no-cache";
-        context.Response.Headers.Connection = "keep-alive";
     }
 
     private async Task WriteDataAsync<T>(T data, JsonTypeInfo<T> jsonTypeInfo)
-    {
-        await using MemoryStream ms = new();
-        await JsonSerializer.SerializeAsync(ms, data, jsonTypeInfo, _cancellationToken);
-        await ms.FlushAsync(_cancellationToken);
-        ms.Seek(0, SeekOrigin.Begin);
-        using StreamReader sr = new(ms);
-        while (!sr.EndOfStream)
-        {
-            var line = await sr.ReadLineAsync(_cancellationToken);
-            if (string.IsNullOrEmpty(line))
-                break;
+        where T : notnull
+        => await (OnReceived?.Invoke(data, jsonTypeInfo) ?? Task.CompletedTask);
 
-            await _context.Response.WriteAsync($"data: {line}\n", _cancellationToken);
-        }
-        await _context.Response.WriteAsync($"\n", _cancellationToken);
-        await _context.Response.Body.FlushAsync(_cancellationToken);
-    }
-
-    private IEnumerable<IncomingSegment> Convert(IEnumerable<IMessageEntity> messages)
+    private static IEnumerable<IncomingSegment> Convert(IEnumerable<IMessageEntity> messages)
     {
         foreach (var message in messages)
         {
