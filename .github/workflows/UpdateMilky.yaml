@@ -39,7 +39,7 @@ jobs:
         run: |-
           $OutdatedList = pnpm outdated '@saltify/milky-types' --json --filter=@milky.net/schema-generator | ConvertFrom-Json
           $Info = $OutdatedList.'@saltify/milky-types'
-          "outdated=$(!!$Info)" >> $env:GITHUB_OUTPUT
+          "outdated=$($Info.latest -ne $Info.wanted)" >> $env:GITHUB_OUTPUT
           "latest=$($Info.latest)" >> $env:GITHUB_OUTPUT
           "current=$($Info.wanted)" >> $env:GITHUB_OUTPUT
 
