@@ -53,8 +53,12 @@ public sealed partial class MilkyClient
     /// <param name="uri">WebSocket 目标地址</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    public async Task ReceivingEventUsingWebSocketAsync(Uri uri, CancellationToken cancellationToken = default)
+    public async Task ReceivingEventUsingWebSocketAsync(CancellationToken cancellationToken = default)
     {
+        if (_client.BaseAddress is null)
+            throw new InvalidOperationException("请先设置 HttpClient.BaseAddress");
+
+        Uri uri = new(_client.BaseAddress, "/event");
         using ClientWebSocket ws = new();
 #if NET5_0_OR_GREATER
         await ws.ConnectAsync(uri, _client, cancellationToken);

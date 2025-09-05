@@ -33,6 +33,9 @@ milky.Events.BotOffline += (milky, e) => {
   // ...
 };
 
+// 通过 WebSocket 接收事件
+_ = milky.ReceivingEventUsingWebSocketAsync();
+
 // 获取服务端（实现端）信息
 var result = await milky.System.GetImplInfoAsync();
 
