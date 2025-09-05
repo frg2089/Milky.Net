@@ -3,6 +3,7 @@ using System.Text.Json;
 
 using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
+using Lagrange.Core.Event.EventArg;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebSockets;
@@ -27,6 +28,7 @@ builder.Services.AddTransient<IMilkyGroupApiEndpoints, LagrangeGroupApiEndpoints
 builder.Services.AddTransient<IMilkyMessageApiEndpoints, LagrangeMessageApiEndpoints>();
 builder.Services.AddTransient<IMilkySystemApiEndpoints, LagrangeSystemApiEndpoints>();
 builder.Services.AddTransient<MilkyApiEndpoints>();
+builder.Services.AddTransient<LagrangeEventScheduler>();
 
 var app = builder.Build();
 
@@ -71,6 +73,7 @@ app.MapGet("/event", async (
             await ms.FlushAsync(cancellationToken);
             ms.Seek(0, SeekOrigin.Begin);
             using StreamReader sr = new(ms);
+            await context.Response.WriteAsync("event: milky_event\n", cancellationToken);
             while (!sr.EndOfStream)
             {
                 var line = await sr.ReadLineAsync(cancellationToken);
@@ -130,6 +133,7 @@ await using (var scope = app.Services.CreateAsyncScope())
     else
     {
         var task = bot.FetchQrCode();
+        bot.Invoker.OnBotCaptchaEvent += Captcha;
 
         using StringWriter sw = new();
         Console.Write("\e[c");
@@ -165,9 +169,12 @@ await using (var scope = app.Services.CreateAsyncScope())
                 result.Value.Url);
         }
 
-
-
         await bot.LoginByQrCode();
+        bot.Invoker.OnBotCaptchaEvent -= Captcha;
+        void Captcha(BotContext sender, BotCaptchaEvent e)
+        {
+            app.Logger.LogWarning("请完成机器人验证: {url}", e.Url);
+        }
     }
 
     await options.Value.SaveDeviceInfoAsync(bot.UpdateDeviceInfo());
