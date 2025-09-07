@@ -14,6 +14,7 @@
     <File Path="global.json" />
     <File Path="LICENSE" />
     <File Path="nuget.config" />
+    <File Path="ReadMe.md" />
   </Folder>
   <Project Path="src/Milky.Net.Client/Milky.Net.Client.csproj" />
   <Project Path="src/Milky.Net.Model/Milky.Net.Model.csproj" />

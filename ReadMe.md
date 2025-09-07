@@ -21,8 +21,12 @@ using Milky.Net.Client;
 // 准备一个 HttpClient 实例
 HttpClient client = new()
 {
-  // 设置服务端（实现端）地址
-  BaseAddress = new("http://localhost:8080/")
+    // 设置服务端（实现端）地址
+    BaseAddress = new("http://localhost:8080/"),
+    DefaultRequestHeaders =
+    {
+        { "Authorization", "Bearer " },
+    },
 };
 
 // 创建 MilkyClient 实例

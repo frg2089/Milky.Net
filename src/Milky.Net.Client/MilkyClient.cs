@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -77,5 +76,4 @@ public sealed partial class MilkyClient
     [RequiresDynamicCode(MetadataFactoryRequiresUnreferencedCode)]
     public async Task<TResponse> RequestAsync<TRequest, TResponse>(string api, TRequest request, CancellationToken cancellationToken = default)
         => await RequestAsync(api, request, JsonTypeInfo.CreateJsonTypeInfo<TRequest>(MilkyJsonSerializerContext.Default.Options), JsonTypeInfo.CreateJsonTypeInfo<TResponse>(MilkyJsonSerializerContext.Default.Options), cancellationToken);
-
 }
