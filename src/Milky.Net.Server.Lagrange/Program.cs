@@ -5,6 +5,7 @@ using Lagrange.Core;
 using Lagrange.Core.Common.Interface.Api;
 using Lagrange.Core.Event.EventArg;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Options;
@@ -29,10 +30,19 @@ builder.Services.AddTransient<IMilkyMessageApiEndpoints, LagrangeMessageApiEndpo
 builder.Services.AddTransient<IMilkySystemApiEndpoints, LagrangeSystemApiEndpoints>();
 builder.Services.AddTransient<MilkyApiEndpoints>();
 builder.Services.AddTransient<LagrangeEventScheduler>();
+builder.Services.AddAuthentication("SimpleToken")
+    .AddScheme<SimpleTokenAuthHandlerOptions, SimpleTokenAuthHandler>(
+        "SimpleToken",
+        options => builder.Configuration.Bind("SimpleToken", options));
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
 app.UseWebSockets();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -87,8 +97,7 @@ app.MapGet("/event", async (
         };
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
     }
-});
-
+}).RequireAuthorization();
 
 app.MapPost("/api/{endpoint}", async (
     HttpContext context,
@@ -119,10 +128,13 @@ app.MapPost("/api/{endpoint}", async (
         await context.Response.WriteAsJsonAsync(new(), MilkyJsonSerializerContext.Default.Object, cancellationToken: cancellationToken);
 
     await context.Response.CompleteAsync();
-});
+}).RequireAuthorization();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
+    if (string.IsNullOrWhiteSpace(scope.ServiceProvider.GetService<IOptions<SimpleTokenAuthHandlerOptions>>()?.Value.Token))
+        app.Logger.LogError("未设置 Token，所有的 API 端点将不受保护！");
+
     var bot = scope.ServiceProvider.GetRequiredService<BotContext>();
     var options = scope.ServiceProvider.GetRequiredService<IOptions<LagrangeBotOptions>>();
     var keystore = await options.Value.GetKeystoreAsync();
