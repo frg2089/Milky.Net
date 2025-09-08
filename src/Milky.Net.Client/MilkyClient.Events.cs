@@ -58,11 +58,14 @@ public sealed partial class MilkyClient
         if (_client.BaseAddress is null)
             throw new InvalidOperationException("请先设置 HttpClient.BaseAddress");
 
-        Uri uri = new(_client.BaseAddress, "/event");
         using ClientWebSocket ws = new();
 #if NET5_0_OR_GREATER
+        Uri uri = new(_client.BaseAddress, "/event");
         await ws.ConnectAsync(uri, _client, cancellationToken);
 #else
+        Uri uri = _client.DefaultRequestHeaders.Authorization is null
+            ? new(_client.BaseAddress, $"/event")
+            : new(_client.BaseAddress, $"/event?access_token={_client.DefaultRequestHeaders.Authorization}");
         await ws.ConnectAsync(uri, cancellationToken);
 #endif
 
