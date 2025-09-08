@@ -21,12 +21,19 @@ public sealed class SimpleTokenAuthHandler(
         var currentToken = Options.Token;
         if (!string.IsNullOrWhiteSpace(currentToken))
         {
-            var authHeader = Request.Headers.Authorization.ToString();
+            string? token;
+            if (Request.Headers.Authorization.Count is not 0)
+            {
+                var authHeader = Request.Headers.Authorization.ToString();
+                if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    return Task.FromResult(AuthenticateResult.Fail("Invalid token"));
 
-            if (authHeader?.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) is not true)
-                return Task.FromResult(AuthenticateResult.Fail("Invalid token"));
-            
-            var token = authHeader[7..].Trim();
+                token = authHeader[7..].Trim();
+            }
+            else
+            {
+                token = Request.Query.FirstOrDefault(i => i.Key is "access_token").Value;
+            }
 
             if (token != currentToken)
                 return Task.FromResult(AuthenticateResult.Fail("Invalid token"));
