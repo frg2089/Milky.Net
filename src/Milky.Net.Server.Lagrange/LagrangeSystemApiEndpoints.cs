@@ -53,10 +53,6 @@ public class LagrangeSystemApiEndpoints(BotContext bot) : IMilkySystemApiEndpoin
         return new([.. result]);
     }
 
-    [Obsolete]
-    public Task<GetGroupListOutput> GetGroupListAsync(GetFriendListInput input, CancellationToken cancellationToken = default)
-        => GetGroupListAsync(new GetGroupListInput(input.NoCache));
-
     public Task<GetGroupMemberInfoOutput> GetGroupMemberInfoAsync(GetGroupMemberInfoInput input, CancellationToken cancellationToken = default)
         => throw new NotImplementedException();
 

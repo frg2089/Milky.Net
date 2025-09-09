@@ -51,13 +51,6 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
             DateTimeOffset.FromUnixTimeSeconds(result.Timestamp));
     }
 
-    async Task<SendGroupMessageOutput> IMilkyMessageApiEndpoints.SendPrivateMessageAsync(SendPrivateMessageInput input, CancellationToken cancellationToken)
-    {
-        var tmp = await SendPrivateMessageAsync(input, cancellationToken);
-        return new(tmp.MessageSeq, tmp.Time);
-    }
-
-
     private async Task<MessageResult> SendMessageAsync(MessageBuilder builder, OutgoingSegment[] segments, CancellationToken cancellationToken = default)
     {
         foreach (var item in segments)
