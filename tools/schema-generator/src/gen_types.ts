@@ -175,24 +175,11 @@ enumInfos.forEach(([name, property], i) => {
   types[name] = info;
 });
 
-const ApiEndpoints: Record<string, Types.Api.ApiCategory> = {};
-Object.entries(apiCategories).forEach(([categoryName, category]) => {
-  ApiEndpoints[categoryName] = {
-    name: category.name,
-    apis: category.apis.map((i) => ({
-      endpoint: i.endpoint,
-      description: i.description,
-      inputStruct: findTypeName(i.inputStruct as any) ?? null,
-      outputStruct: findTypeName(i.outputStruct as any) ?? null,
-    })),
-  };
-});
-
 await fs.promises.mkdir(path.resolve('out'), { recursive: true });
 fs.promises.writeFile(path.resolve('out', "MilkyTypes.json"), JSON.stringify(types, null, 2));
 fs.promises.writeFile(
   path.resolve('out', "ApiEndpoints.json"),
-  JSON.stringify(ApiEndpoints, null, 2)
+  JSON.stringify(apiCategories, null, 2)
 );
 fs.promises.writeFile(
   path.resolve('out', "Milky.props"),
