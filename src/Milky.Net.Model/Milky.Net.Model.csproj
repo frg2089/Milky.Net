@@ -1,44 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Target Name="BuildModelGenerator"
-          BeforeTargets="DispatchToInnerBuilds"
-          Condition="'$(IsCrossTargetingBuild)' == 'true'">
-    <MSBuild Projects="$(GeneratorDirectory)Milky.Net.ModelGenerator\Milky.Net.ModelGenerator.csproj"
-             Properties="Configuration=Release;TargetFramework=net9.0"
-             BuildInParallel="True">
-      <Output TaskParameter="TargetOutputs" ItemName="_ModelGeneratorOutput" />
-    </MSBuild>
+  <ItemGroup>
+    <ProjectReference Include="$(GeneratorDirectory)Milky.Net.ModelGenerator\Milky.Net.ModelGenerator.csproj"
+                      SetTargetFramework="TargetFramework=net9.0"
+                      SkipGetTargetFrameworkProperties="true"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="_ModelGeneratorOutput" />
+  </ItemGroup>
+
+  <Target Name="GenerateMilkyModelMetadata"
+          BeforeTargets="CoreCompile"
+          Condition="'$(IsCrossTargetingBuild)' != 'true'">
 
     <PropertyGroup>
       <_ModelGeneratorCommand>dotnet --roll-forward Major &quot;@(_ModelGeneratorOutput)&quot;</_ModelGeneratorCommand>
-    </PropertyGroup>
-
-    <WriteLinestoFile File="$(BaseIntermediateOutputPath)MilkyModelGenerator.txt"
-                      Lines="$(_ModelGeneratorCommand)"
-                      Overwrite="true"
-                      WriteOnlyWhenDifferent="true" />
-  </Target>
-
-  <Target Name="GenerateMilkyModelMetadata"
-          DependsOnTargets="BuildModelGenerator"
-          Condition="'$(IsCrossTargetingBuild)' != 'true'">
-
-    <ReadLinesFromFile File="$(BaseIntermediateOutputPath)MilkyModelGenerator.txt">
-      <Output TaskParameter="Lines" ItemName="_ModelGeneratorCommand" />
-    </ReadLinesFromFile>
-
-    <PropertyGroup>
-      <_MilkyModelGenerator>@(_ModelGeneratorCommand)</_MilkyModelGenerator>
       <_MilkyOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</_MilkyOutputPath>
       <_MilkyTypePath>$(_MilkyOutputPath)MilkyTypes.json</_MilkyTypePath>
       <_MilkyTypeOutput>$(_MilkyOutputPath)Generated\</_MilkyTypeOutput>
     </PropertyGroup>
-
     <Exec Command="pnpm run --silent gen:models --out &quot;$(_MilkyTypePath)&quot;"
           WorkingDirectory="$(GeneratorDirectory)Milky.Net.SchemaGenerator"
           EchoOff="true" />
 
-    <Exec Command="$(_MilkyModelGenerator) list --input &quot;$(_MilkyTypePath)&quot;"
+    <Exec Command="$(_ModelGeneratorCommand) list --input &quot;$(_MilkyTypePath)&quot;"
           WorkingDirectory="$(GeneratorDirectory)Milky.Net.ModelGenerator"
           ConsoleToMsBuild="true"
           EchoOff="true"
@@ -60,7 +44,7 @@
           BeforeTargets="CoreCompile"
           Inputs="$(_MilkyTypePath)"
           Outputs="%(MilkyModelName.ClassFileName)">
-    <Exec Command="$(_MilkyModelGenerator) generate --input &quot;$(_MilkyTypePath)&quot; --output &quot;$(_MilkyTypeOutput)&quot;"
+    <Exec Command="$(_ModelGeneratorCommand) generate --input &quot;$(_MilkyTypePath)&quot; --output &quot;$(_MilkyTypeOutput)&quot;"
           WorkingDirectory="$(GeneratorDirectory)Milky.Net.ModelGenerator"
           EchoOff="true"
           UseUtf8Encoding="Always" />
