@@ -1,6 +1,6 @@
 <Project>
   <!-- See https://aka.ms/dotnet/msbuild/customize for more details on customizing your build -->
-  <PropertyGroup>
+  <PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -9,9 +9,7 @@
     <NoWarn Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">$(NoWarn);8629;8604</NoWarn>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)tools\schema-generator\out\Milky.props"/>
-
-  <PropertyGroup>
+  <PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <Authors>frg2089</Authors>
     <Description>
       Milky.Net is a .NET library for interacting with the Milky API.
@@ -24,10 +22,6 @@
     <PackageIcon>Logo.png</PackageIcon>
     <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
     <PackageTags>Milky</PackageTags>
-    <PackageReleaseNotes>
-      Milky Version: $(MilkyVersion)
-      @saltify/milky-types Version: $(MilkyPackageVersion)
-    </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/frg2089/Milky.Net.git</RepositoryUrl>
     <RepositoryType	>git</RepositoryType>
     <RepositoryBranch>$(BranchName)</RepositoryBranch>
@@ -37,8 +31,12 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <GeneratorDirectory>$(MSBuildThisFileDirectory)generator\</GeneratorDirectory>
+  </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <None Include="$(MSBuildThisFileDirectory)ReadMe.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -49,12 +47,7 @@
     </None>
   </ItemGroup>
   
-  <ItemGroup>
-    <AssemblyMetadata Include="MilkyVersion" Value="$(MilkyVersion)" />
-    <AssemblyMetadata Include="MilkyPackageVersion" Value="$(MilkyPackageVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
+  <ItemGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

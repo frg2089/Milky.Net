@@ -1,6 +1,8 @@
-﻿namespace Milky.Net.Server;
+﻿using Milky.Net.Model;
+
+namespace Milky.Net.Server;
 
 public interface IFileFetcher
 {
-    Task<Stream> FetchFileAsync(Uri fileUri, CancellationToken cancellationToken = default);
+    Task<Stream> FetchFileAsync(MilkyUri uri, CancellationToken cancellationToken = default);
 }

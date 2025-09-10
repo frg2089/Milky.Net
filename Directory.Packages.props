@@ -1,15 +1,16 @@
 <Project>
-  <PropertyGroup>
+  <PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <GitVersionTargetFramework>net9.0</GitVersionTargetFramework>
     <UseProjectNamespaceForGitVersionInformation>true</UseProjectNamespaceForGitVersionInformation>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <GlobalPackageReference Include="IDisposableAnalyzers" Version="4.0.8" />
     <GlobalPackageReference Include="GitVersion.MsBuild" Version="6.4.0" />
   </ItemGroup>
   <ItemGroup>
+    <PackageVersion Include="DotMake.CommandLine" Version="2.7.1" />
     <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
     <PackageVersion Include="Lagrange.Core" Version="0.3.1" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.8" />

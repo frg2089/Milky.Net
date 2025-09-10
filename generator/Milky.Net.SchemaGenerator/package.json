@@ -7,14 +7,17 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "gen_types": "pnpm tsup && node ./dist/gen_types.js"
+    "gen:apis": "tsx ./src/apis.ts",
+    "gen:models": "tsx ./src/models.ts",
+    "version": "tsx ./src/version.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
-    "tsup": "^8.5.0"
+    "@types/node": "^24.3.0"
   },
   "dependencies": {
     "@saltify/milky-types": "1.0.0-draft.14",
+    "commander": "^14.0.0",
+    "tsx": "^4.20.5",
     "zod": "^4.0.17"
   }
 }

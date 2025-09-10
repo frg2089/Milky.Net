@@ -65,9 +65,6 @@ jobs:
           node-version: latest
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
-
       - name: 配置 .Net 环境
         uses: actions/setup-dotnet@v4
         with:
@@ -76,10 +73,6 @@ jobs:
 
       - name: 还原
         run: dotnet restore --graph --artifacts-path artifacts
-
-      - name: 生成实体代码
-        shell: pwsh
-        run: ./scripts/Make-Models.ps1
 
       - name: 生成
         run: dotnet build --graph --artifacts-path artifacts --configuration Release --no-restore

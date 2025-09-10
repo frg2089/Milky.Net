@@ -1,5 +1,5 @@
 packages:
-  - tools/*
+  - generator/Milky.Net.SchemaGenerator
 
 onlyBuiltDependencies:
   - esbuild

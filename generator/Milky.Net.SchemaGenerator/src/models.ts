@@ -16,6 +16,14 @@ import {
   isZodString,
   isZodUnion,
 } from "./zod_utils.js";
+import { program } from 'commander';
+
+
+
+program
+  .option('-o, --out <path>', '中间 json 生成路径', path.resolve('out', "MilkyTypes.json"))
+
+program.parse();
 
 const types: Record<string, Types.TypeInfoData> = {};
 const enums: Array<Record<string, string> | Record<string, number>> = [];
@@ -98,7 +106,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
       const [discriminatorPropName, discriminatorPropType] = Object.entries((option as ZodObject).def.shape).find(([propertyName, propertyType]: [string, ZodType]) =>
         propertyType.def.type === "literal"
       )!
-      
+
       const discriminatorValue = discriminatorPropType.def.values[0] as string
       const typeName = `${discriminatorValue}_union_${schemaName}`;
 
@@ -175,18 +183,6 @@ enumInfos.forEach(([name, property], i) => {
   types[name] = info;
 });
 
-await fs.promises.mkdir(path.resolve('out'), { recursive: true });
-fs.promises.writeFile(path.resolve('out', "MilkyTypes.json"), JSON.stringify(types, null, 2));
-fs.promises.writeFile(
-  path.resolve('out', "ApiEndpoints.json"),
-  JSON.stringify(apiCategories, null, 2)
-);
-fs.promises.writeFile(
-  path.resolve('out', "Milky.props"),
-  `<Project>
-  <PropertyGroup>
-    <MilkyVersion>${Milky.milkyVersion}</MilkyVersion>
-    <MilkyPackageVersion>${Milky.milkyPackageVersion}</MilkyPackageVersion>
-  </PropertyGroup>
-</Project>`
-);
+const options = program.opts();
+
+await fs.promises.writeFile(path.resolve(options.out), JSON.stringify(types, null, 2));

@@ -1,9 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\tools\schema-generator\out\ApiEndpoints.json" Link="ApiEndpoints.json" />
-    <AdditionalFiles Include="..\..\tools\schema-generator\out\MilkyTypes.json" Link="MilkyTypes.json" />
-  </ItemGroup>
+  <Target Name="GenerateMilkyModelMetadata"
+          BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_MilkyOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</_MilkyOutputPath>
+      <_MilkyApiPath>$(_MilkyOutputPath)ApiEndpoints.json</_MilkyApiPath>
+      <_MilkyTypePath>$(_MilkyOutputPath)MilkyTypes.json</_MilkyTypePath>
+    </PropertyGroup>
+    <Exec Command="pnpm run --silent gen:apis --out &quot;$(_MilkyApiPath)&quot;"
+          WorkingDirectory="$(GeneratorDirectory)Milky.Net.SchemaGenerator"
+          EchoOff="true" />
+    <Exec Command="pnpm run --silent gen:models --out &quot;$(_MilkyTypePath)&quot;"
+          WorkingDirectory="$(GeneratorDirectory)Milky.Net.SchemaGenerator"
+          EchoOff="true" />
+
+    <ItemGroup>
+      <AdditionalFiles Include="$(_MilkyApiPath)" Link="ApiEndpoints.json" />
+      <AdditionalFiles Include="$(_MilkyTypePath)" Link="MilkyTypes.json" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
@@ -12,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\analyzer\Milky.Net.Client.SourceGenerator\Milky.Net.Client.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="$(GeneratorDirectory)Milky.Net.Client.SourceGenerator\Milky.Net.Client.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Milky.Net.Model\Milky.Net.Model.csproj" />
   </ItemGroup>
 
