@@ -1,3 +1,10 @@
 workflow: GitHubFlow/v1
 assembly-versioning-scheme: MajorMinorPatchTag
 assembly-file-versioning-scheme: MajorMinorPatchTag
+branches:
+  main:
+    label: 'preview'
+  feature:
+    regex: ^feat(ures?)?[\/-](?<BranchName>.+)
+  pull-request:
+    label: pr{Number}

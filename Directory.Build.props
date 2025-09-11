@@ -23,7 +23,7 @@
     <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
     <PackageTags>Milky</PackageTags>
     <RepositoryUrl>https://github.com/frg2089/Milky.Net.git</RepositoryUrl>
-    <RepositoryType	>git</RepositoryType>
+    <RepositoryType>git</RepositoryType>
     <RepositoryBranch>$(BranchName)</RepositoryBranch>
     <RepositoryCommit>$(Sha)</RepositoryCommit>
     <IncludeSymbols>true</IncludeSymbols>
@@ -31,7 +31,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <GeneratorDirectory>$(MSBuildThisFileDirectory)generator\</GeneratorDirectory>
   </PropertyGroup>
@@ -46,13 +46,13 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <PackageReference Include="Polyfill">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Text.Json"/>
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>
