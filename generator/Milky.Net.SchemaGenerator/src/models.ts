@@ -138,7 +138,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
         };
 
         if (isZodObject(propertyType)) {
-          const name = `${schemaName}_${propertyName}`
+          const name = findTypeName(propertyType) ?? `${schemaName}_${propertyName}`
           const typeInfo = parseObjectType(propertyType, name);
           types[name] = typeInfo;
           info.type = name;
