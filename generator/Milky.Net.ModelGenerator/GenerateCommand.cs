@@ -54,17 +54,21 @@ internal sealed class GenerateCommand
             var path = Path.Combine(Output.FullName, $"{pascalTypeName.Replace("<T>", "{T}")}.g.cs");
             using var writer = File.CreateText(path);
 
-            await writer.WriteLineAsync($$"""
+            await writer.WriteLineAsync("""
                 using System.Text.Json.Serialization;
 
                 #nullable enable
 
                 namespace Milky.Net.Model;
 
-                /// <summary>
-                /// {{typeInfo.Description}}
-                /// </summary>
                 """);
+            if (!string.IsNullOrWhiteSpace(typeInfo.Description))
+                await writer.WriteLineAsync($$"""
+                    /// <summary>
+                    /// {{typeInfo.Description}}
+                    /// </summary>
+                    """);
+
             switch (typeInfo)
             {
                 case UnionTypeInfoData:
