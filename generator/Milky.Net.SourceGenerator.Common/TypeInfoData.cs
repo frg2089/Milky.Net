@@ -6,6 +6,7 @@ namespace Milky.Net.SourceGenerator.Common;
 [JsonDerivedType(typeof(ObjectTypeInfoData), "object")]
 [JsonDerivedType(typeof(UnionTypeInfoData), "union")]
 [JsonDerivedType(typeof(EnumTypeInfoData), "enum")]
+[JsonDerivedType(typeof(GenericTypeInfoData), "generic")]
 public abstract record TypeInfoData(
     [property: JsonPropertyName("description")] string? Description
 );

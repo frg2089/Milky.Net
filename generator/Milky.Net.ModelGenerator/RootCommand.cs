@@ -3,6 +3,8 @@ using System.Text.Json;
 
 using DotMake.CommandLine;
 
+using Milky.Net.SourceGenerator.Common;
+
 namespace Milky.Net.ModelGenerator;
 
 [CliCommand]

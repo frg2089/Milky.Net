@@ -57,19 +57,19 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
         {
             switch (item)
             {
-                case TextUnionOutgoingSegment text:
+                case TextOutgoingSegment text:
                     builder.Text(text.Data.Text);
                     break;
-                case MentionUnionOutgoingSegment mention:
+                case MentionOutgoingSegment mention:
                     builder.Mention((uint)mention.Data.UserId);
                     break;
-                case MentionAllUnionOutgoingSegment mention_all:
+                case MentionAllOutgoingSegment mention_all:
                     break;
-                case FaceUnionOutgoingSegment face:
+                case FaceOutgoingSegment face:
                     break;
-                case ReplyUnionOutgoingSegment reply:
+                case ReplyOutgoingSegment reply:
                     break;
-                case ImageUnionOutgoingSegment image:
+                case ImageOutgoingSegment image:
                     {
                         var path = Path.GetTempFileName();
                         await using var fs = await fileFetcher.FetchFileAsync(image.Data.Uri, cancellationToken);
@@ -79,11 +79,11 @@ public class LagrangeMessageApiEndpoints(BotContext bot, IFileFetcher fileFetche
                         builder.Image(path);
                     }
                     break;
-                case RecordUnionOutgoingSegment record:
+                case RecordOutgoingSegment record:
                     break;
-                case VideoUnionOutgoingSegment video:
+                case VideoOutgoingSegment video:
                     break;
-                case ForwardUnionOutgoingSegment forward:
+                case ForwardOutgoingSegment forward:
                     break;
                 default:
                     throw new NotSupportedException();

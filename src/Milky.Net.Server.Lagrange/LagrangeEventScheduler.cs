@@ -57,35 +57,35 @@ public sealed class LagrangeEventScheduler : IDisposable
             switch (message)
             {
                 case TextEntity text:
-                    yield return new TextUnionIncomingSegment(new(text.Text));
+                    yield return new TextIncomingSegment(new(text.Text));
                     break;
                 case MentionEntity mention:
-                    yield return new MentionUnionIncomingSegment(new(mention.Uin));
+                    yield return new MentionIncomingSegment(new(mention.Uin));
                     break;
                 case FaceEntity face:
-                    yield return new FaceUnionIncomingSegment(new(face.FaceId.ToString()));
+                    yield return new FaceIncomingSegment(new(face.FaceId.ToString()));
                     break;
                 case ImageEntity image:
-                    yield return new ImageUnionIncomingSegment(new(System.Convert.ToHexString(image.ImageMd5), image.ImageUrl, (int)image.PictureSize.X, (int)image.PictureSize.Y, string.Empty, image.SubType switch
+                    yield return new ImageIncomingSegment(new(System.Convert.ToHexString(image.ImageMd5), image.ImageUrl, (int)image.PictureSize.X, (int)image.PictureSize.Y, string.Empty, image.SubType switch
                     {
                         1 => SubType.Sticker,
                         _ => SubType.Normal,
                     }));
                     break;
                 case RecordEntity record:
-                    yield return new RecordUnionIncomingSegment(new(System.Convert.ToHexString(record.AudioMd5), record.AudioUrl, record.AudioLength));
+                    yield return new RecordIncomingSegment(new(System.Convert.ToHexString(record.AudioMd5), record.AudioUrl, record.AudioLength));
                     break;
                 case VideoEntity video:
-                    yield return new VideoUnionIncomingSegment(new(video.VideoHash, video.VideoUrl, (int)video.Size.X, (int)video.Size.Y, video.VideoLength));
+                    yield return new VideoIncomingSegment(new(video.VideoHash, video.VideoUrl, (int)video.Size.X, (int)video.Size.Y, video.VideoLength));
                     break;
                 case ForwardEntity forward:
-                    yield return new ForwardUnionIncomingSegment(new(forward.MessageId.ToString()));
+                    yield return new ForwardIncomingSegment(new(forward.MessageId.ToString()));
                     break;
                 case LightAppEntity lightApp:
-                    yield return new LightAppUnionIncomingSegment(new(lightApp.AppName, lightApp.Payload));
+                    yield return new LightAppIncomingSegment(new(lightApp.AppName, lightApp.Payload));
                     break;
                 case XmlEntity xml:
-                    yield return new XmlUnionIncomingSegment(new(-1, xml.Xml));
+                    yield return new XmlIncomingSegment(new(-1, xml.Xml));
                     break;
             }
         }
@@ -99,7 +99,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.Message)),
-            MilkyJsonSerializerContext.Default.BotOfflineUnionEvent);
+            MilkyJsonSerializerContext.Default.EventBotOfflineEvent);
 
     private void BotLogEvent(BotContext bot, Lagrange::BotLogEvent eventArgs) { }
 
@@ -113,7 +113,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, -1, eventArgs.InvitorUin)),
-            MilkyJsonSerializerContext.Default.GroupInvitationUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupInvitationEvent);
 
     private async void FriendMessageReceived(BotContext bot, FriendMessageEvent eventArgs)
     {
@@ -122,7 +122,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 new(
                     eventArgs.EventTime,
                     bot.BotUin,
-                    new FriendUnionIncomingMessage(
+                    new FriendIncomingMessage(
                         eventArgs.Chain.FriendUin,
                         eventArgs.Chain.Sequence,
                         eventArgs.Chain.TargetUin,
@@ -130,7 +130,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                         [.. Convert(eventArgs.Chain)],
                         new(-1, string.Empty, Sex.Unknown, string.Empty, string.Empty, new(-1, string.Empty))
                         )),
-                MilkyJsonSerializerContext.Default.MessageReceiveUnionEvent);
+                MilkyJsonSerializerContext.Default.EventIncomingMessage);
     }
 
     private async void GroupMessageReceived(BotContext bot, GroupMessageEvent eventArgs)
@@ -138,7 +138,7 @@ public sealed class LagrangeEventScheduler : IDisposable
             new(
                 eventArgs.EventTime,
                 bot.BotUin,
-                new GroupUnionIncomingMessage(
+                new GroupIncomingMessage(
                     eventArgs.Chain.FriendUin,
                     eventArgs.Chain.Sequence,
                     eventArgs.Chain.TargetUin,
@@ -147,21 +147,21 @@ public sealed class LagrangeEventScheduler : IDisposable
                     new(-1, string.Empty, -1, -1),
                         new(-1, string.Empty, Sex.Unknown, -1, string.Empty, string.Empty, -1, Role.Member, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch)
                     )),
-            MilkyJsonSerializerContext.Default.MessageReceiveUnionEvent);
+            MilkyJsonSerializerContext.Default.EventIncomingMessage);
 
     private async void TempMessageReceived(BotContext bot, TempMessageEvent eventArgs)
         => await WriteDataAsync(
             new(
                 eventArgs.EventTime,
                 bot.BotUin,
-                new TempUnionIncomingMessage(
+                new TempIncomingMessage(
                     eventArgs.Chain.FriendUin,
                     eventArgs.Chain.Sequence,
                     eventArgs.Chain.TargetUin,
                     eventArgs.Chain.Time,
                     [.. Convert(eventArgs.Chain)],
                     null)),
-            MilkyJsonSerializerContext.Default.MessageReceiveUnionEvent);
+            MilkyJsonSerializerContext.Default.EventIncomingMessage);
 
     private async void GroupAdminChangedEvent(BotContext bot, Lagrange::GroupAdminChangedEvent eventArgs)
         => await WriteDataAsync(
@@ -169,7 +169,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, eventArgs.AdminUin, eventArgs.IsPromote)),
-            MilkyJsonSerializerContext.Default.GroupAdminChangeUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupAdminChangeEvent);
 
     private async void GroupMemberIncreaseEvent(BotContext bot, Lagrange::GroupMemberIncreaseEvent eventArgs)
         => await WriteDataAsync(
@@ -177,7 +177,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, eventArgs.MemberUin, null, eventArgs.InvitorUin)),
-            MilkyJsonSerializerContext.Default.GroupMemberIncreaseUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupMemberIncreaseEvent);
 
     private async void GroupMemberDecreaseEvent(BotContext bot, Lagrange::GroupMemberDecreaseEvent eventArgs)
         => await WriteDataAsync(
@@ -185,7 +185,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, eventArgs.MemberUin, eventArgs.OperatorUin)),
-            MilkyJsonSerializerContext.Default.GroupMemberDecreaseUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupMemberDecreaseEvent);
 
     private async void FriendRequestEvent(BotContext bot, Lagrange::FriendRequestEvent eventArgs)
         => await WriteDataAsync(
@@ -193,7 +193,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.SourceUin, string.Empty, eventArgs.Message, eventArgs.Source)),
-            MilkyJsonSerializerContext.Default.FriendRequestUnionEvent);
+            MilkyJsonSerializerContext.Default.EventFriendRequestEvent);
 
     private async void GroupInvitationRequestEvent(BotContext bot, Lagrange::GroupInvitationRequestEvent eventArgs)
         => await WriteDataAsync(
@@ -201,7 +201,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, -1, eventArgs.InvitorUin)),
-            MilkyJsonSerializerContext.Default.GroupInvitationUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupInvitationEvent);
 
     private async void GroupJoinRequestEvent(BotContext bot, Lagrange::GroupJoinRequestEvent eventArgs)
         => await WriteDataAsync(
@@ -209,7 +209,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, -1, false, eventArgs.TargetUin, string.Empty)),
-            MilkyJsonSerializerContext.Default.GroupJoinRequestUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupJoinRequestEvent);
 
     private void GroupMuteEvent(BotContext bot, Lagrange::GroupMuteEvent eventArgs) { }
 
@@ -219,7 +219,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, eventArgs.TargetUin, eventArgs.OperatorUin ?? 0, (int)eventArgs.Duration)),
-            MilkyJsonSerializerContext.Default.GroupMuteUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupMuteEvent);
 
     private void GroupRecallEvent(BotContext bot, Lagrange::GroupRecallEvent eventArgs) { }
 
@@ -239,7 +239,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                     eventArgs.Action,
                     eventArgs.Suffix,
                     eventArgs.ActionImgUrl)),
-            MilkyJsonSerializerContext.Default.FriendNudgeUnionEvent);
+            MilkyJsonSerializerContext.Default.EventFriendNudgeEvent);
 
     private async void GroupPokeEvent(BotContext bot, Lagrange::GroupPokeEvent eventArgs)
         => await WriteDataAsync(
@@ -253,7 +253,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                     eventArgs.Action,
                     eventArgs.Suffix,
                     eventArgs.ActionImgUrl)),
-            MilkyJsonSerializerContext.Default.GroupNudgeUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupNudgeEvent);
 
     private async void GroupEssenceEvent(BotContext bot, Lagrange::GroupEssenceEvent eventArgs)
         => await WriteDataAsync(
@@ -261,7 +261,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, eventArgs.Sequence, eventArgs.IsSet)),
-            MilkyJsonSerializerContext.Default.GroupEssenceMessageChangeUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupEssenceMessageChangeEvent);
 
     private void GroupReactionEvent(BotContext bot, Lagrange::GroupReactionEvent eventArgs) { }
 
@@ -271,7 +271,7 @@ public sealed class LagrangeEventScheduler : IDisposable
                 eventArgs.EventTime,
                 bot.BotUin,
                 new(eventArgs.GroupUin, eventArgs.Name, -1)),
-            MilkyJsonSerializerContext.Default.GroupNameChangeUnionEvent);
+            MilkyJsonSerializerContext.Default.EventGroupNameChangeEvent);
     public void Dispose()
     {
         _bot.Invoker.OnBotOnlineEvent -= BotOnlineEvent;

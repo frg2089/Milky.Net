@@ -15,4 +15,8 @@
     <PackageReference Include="Humanizer.Core" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Milky.Net.SourceGenerator.Common\*.cs" Link="Common\%(Filename).cs" />
+  </ItemGroup>
+
 </Project>

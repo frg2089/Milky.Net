@@ -4,6 +4,8 @@ using DotMake.CommandLine;
 
 using Humanizer;
 
+using Milky.Net.SourceGenerator.Common;
+
 namespace Milky.Net.ModelGenerator;
 
 [CliCommand(Parent = typeof(RootCommand))]
