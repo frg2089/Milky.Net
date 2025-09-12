@@ -17,6 +17,6 @@ internal sealed class ListCommand
 
         var types = await RootCommand.GetDataAsync(Input);
         foreach (var name in types.Keys)
-            Console.WriteLine(name.Pascalize());
+            Console.WriteLine(name.Replace("<T>", "{T}").Pascalize());
     }
 }

@@ -8,7 +8,7 @@ declare namespace Types {
     : never;
 
   export interface TypeInfoData {
-    type: "object" | "enum" | "union";
+    type: "object" | "enum" | "union" | "generic";
     description?: string | undefined;
   }
 
@@ -18,8 +18,16 @@ declare namespace Types {
     baseType?: string;
   }
 
+  export interface GenericTypeInfoData extends TypeInfoData {
+    type: "generic";
+    baseType: string;
+    genericPropertyName: string;
+  }
+
   export interface UnionTypeInfoData extends TypeInfoData {
     type: "union";
+    properties: Record<string, PropertyInfoData>;
+    baseType?: string;
     types: Record<string, string>;
     discriminator: string;
   }

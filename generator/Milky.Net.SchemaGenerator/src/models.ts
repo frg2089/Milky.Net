@@ -16,12 +16,13 @@ import {
   isZodString,
   isZodUnion,
 } from "./zod_utils.js";
-import { program } from 'commander';
+import { program } from "commander";
 
-
-
-program
-  .option('-o, --out <path>', '中间 json 生成路径', path.resolve('out', "MilkyTypes.json"))
+program.option(
+  "-o, --out <path>",
+  "中间 json 生成路径",
+  path.resolve("out", "MilkyTypes.json")
+);
 
 program.parse();
 
@@ -100,25 +101,85 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
       description: schema.description,
       types: {},
       discriminator: (schema.def as any)["discriminator"],
+      properties: {},
       // _def: schema,
     };
+
+    // 取出第一个对象的所有非对象类型
+    const props = Object.fromEntries(
+      Object.entries((schema.def.options[0] as ZodObject).def.shape)
+        .filter(
+          ([_, type]) => !isZodObject(type) && type.def.type !== "literal"
+        )
+        .map(([name, info]) => [name, info as ZodType])
+    );
+
     schema.def.options.forEach((option) => {
-      const [discriminatorPropName, discriminatorPropType] = Object.entries((option as ZodObject).def.shape).find(([propertyName, propertyType]: [string, ZodType]) =>
-        propertyType.def.type === "literal"
-      )!
+      // 遍历并删除不存在的属性
+      const properties = Object.entries((option as ZodObject).def.shape);
+      properties.forEach(([name, info]) => {
+        if (props[name]?.def.type !== info.def.type) delete props[name];
+      });
+      Object.entries(props).forEach(([propertyName]) => {
+        if (!properties.find(([name]) => name === propertyName))
+          delete props[propertyName];
+      });
+    });
 
-      const discriminatorValue = discriminatorPropType.def.values[0] as string
-      const typeName = `${discriminatorValue}_union_${schemaName}`;
+    Object.entries(props).forEach(([propertyName, propertyType]) => {
+      info.properties[propertyName] = {
+        type: parseSimpleTypeName(propertyType),
+        description: propertyType.description,
+      };
+      if (info.properties[propertyName].type === "enum") {
+        enumInfos.push([propertyName, info]);
+        info.properties[propertyName].type = propertyName;
+      }
+    });
 
-      const typeInfo = parseObjectType(
-        option as ZodType,
-        typeName
-      ) as Types.ObjectTypeInfoData;
-      typeInfo.baseType = schemaName ?? 'Unknown';
+    schema.def.options.forEach((option) => {
+      const properties = Object.entries((option as ZodObject).def.shape);
+      const [discriminatorPropName, discriminatorPropType] = properties.find(
+        ([propertyName, propertyType]) => propertyType.def.type === "literal"
+      )!;
+      const props = properties.filter(
+        ([name]) => !info.properties[name] && info.discriminator !== name
+      );
+      if (
+        !Array.isArray(discriminatorPropType.def.values) ||
+        discriminatorPropType.def.values.length !== 1
+      )
+        throw new Error(
+          `Discriminator property ${discriminatorPropName} must have exactly one value`
+        );
+      const discriminatorValue = discriminatorPropType.def.values[0] as string;
 
-      types[typeName] = typeInfo;
+      (() => {
+        if (props.length === 1) {
+          const [propertyName, type] = props![0] as [string, ZodType];
+          const name = findTypeName(type);
+          if (name) {
+            types[`${schemaName}<T>`] = {
+              type: "generic",
+              baseType: schemaName,
+              genericPropertyName: propertyName,
+            } as Types.GenericTypeInfoData;
+            info.types[discriminatorValue] = `${schemaName}<${name}>`;
+            return;
+          }
+        }
+        const typeName = `${discriminatorValue}_${schemaName}`;
 
-      info.types[discriminatorValue] = typeName;
+        const typeInfo = parseObjectType(
+          option as ZodType,
+          typeName
+        ) as Types.ObjectTypeInfoData;
+        typeInfo.baseType = schemaName ?? "Unknown";
+
+        types[typeName] = typeInfo;
+
+        info.types[discriminatorValue] = typeName;
+      })();
     });
 
     return info;
@@ -138,7 +199,8 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
         };
 
         if (isZodObject(propertyType)) {
-          const name = findTypeName(propertyType) ?? `${schemaName}_${propertyName}`
+          const name =
+            findTypeName(propertyType) ?? `${schemaName}_${propertyName}`;
           const typeInfo = parseObjectType(propertyType, name);
           types[name] = typeInfo;
           info.type = name;
@@ -185,4 +247,7 @@ enumInfos.forEach(([name, property], i) => {
 
 const options = program.opts();
 
-await fs.promises.writeFile(path.resolve(options.out), JSON.stringify(types, null, 2));
+await fs.promises.writeFile(
+  path.resolve(options.out),
+  JSON.stringify(types, null, 2)
+);

@@ -45,10 +45,11 @@ internal sealed class GenerateCommand
             var typeName = type.Key;
             var pascalTypeName = typeName.Pascalize();
 
-            await jsonSerializerContext.WriteLineAsync($"[JsonSerializable(typeof({pascalTypeName}))]");
+            if (!pascalTypeName.Contains("<T>"))
+                await jsonSerializerContext.WriteLineAsync($"[JsonSerializable(typeof({pascalTypeName}))]");
 
             var typeInfo = type.Value;
-            var path = Path.Combine(Output.FullName, $"{pascalTypeName}.g.cs");
+            var path = Path.Combine(Output.FullName, $"{pascalTypeName.Replace("<T>", "{T}")}.g.cs");
             using var writer = File.CreateText(path);
 
             await writer.WriteLineAsync($$"""
@@ -64,77 +65,90 @@ internal sealed class GenerateCommand
                 """);
             switch (typeInfo)
             {
-                case ObjectTypeInfoData objectTypeInfoData:
-                    foreach (var property in objectTypeInfoData.Properties)
-                        await writer.WriteLineAsync($"/// <param name=\"{property.Key.Pascalize()}\">{property.Value.Description}</param>");
+                case UnionTypeInfoData:
+                case ObjectTypeInfoData:
+                    if (typeInfo is IObjectTypeInfoData currentType)
+                    {
+                        IObjectTypeInfoData? baseType = null;
+                        if (!string.IsNullOrEmpty(currentType.BaseType) && types.TryGetValue(currentType.BaseType, out var baseTypeInfo))
+                            baseType = baseTypeInfo as IObjectTypeInfoData;
 
-                    await writer.WriteLineAsync($"public sealed record class {pascalTypeName}(");
+                        foreach (var property in currentType.Properties)
+                            await writer.WriteLineAsync($"/// <param name=\"{property.Key.Pascalize()}\">{property.Value.Description}</param>");
 
-                    var props = objectTypeInfoData
-                        .Properties
-                        .Where(i => i.Value.Type is not "literal")
-                        .Select(property =>
+                        if (currentType is UnionTypeInfoData unionTypeInfoData)
                         {
-                            string? defaultValue = null;
-                            var typeName = property.Value.Type;
-                            if (typeName.Contains('='))
-                            {
-                                var tmp = typeName.Split('=', 2, StringSplitOptions.TrimEntries);
-                                typeName = tmp[0];
-                                defaultValue = tmp[1];
-                            }
-                            typeName = ParseTypeName(typeName);
-                            if (typeName == "long" && property.Key.Contains("time", StringComparison.OrdinalIgnoreCase))
-                                typeName = "DateTimeOffset";
-                            else if (typeName == "long?" && property.Key.Contains("time", StringComparison.OrdinalIgnoreCase))
-                                typeName = "DateTimeOffset?";
-                            else if (typeName == "string" && property.Key.Contains("uri", StringComparison.OrdinalIgnoreCase))
-                                typeName = "MilkyUri";
-                            else if (typeName == "string?" && property.Key.Contains("uri", StringComparison.OrdinalIgnoreCase))
-                                typeName = "MilkyUri?";
+                            await writer.WriteLineAsync($"[JsonPolymorphic(TypeDiscriminatorPropertyName = \"{unionTypeInfoData.Discriminator}\")]");
+                            foreach (var trueType in unionTypeInfoData.Types)
+                                await writer.WriteLineAsync($"[JsonDerivedType(typeof({trueType.Value.Pascalize()}), \"{trueType.Key}\")]");
 
-                            StringBuilder sb = new();
-                            sb
-                                .Append("    [property: JsonPropertyName(")
-                                .Append('"')
-                                .Append(property.Key)
-                                .Append('"');
-                            if (typeName.Contains("DateTimeOffset"))
-                                sb.Append(")][property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter)");
+                            await writer.WriteLineAsync($"public abstract record class {pascalTypeName}(");
+                        }
+                        else
+                        {
+                            await writer.WriteLineAsync($"public sealed record class {pascalTypeName}(");
+                        }
 
-                            sb
-                                .Append(")] ")
-                                .Append(typeName)
-                                .Append(' ')
-                                .Append(property.Key.Pascalize());
+                        var currentProps = currentType
+                            .Properties
+                            .Where(i => i.Value.Type is not "literal")
+                            .Select(PropertyInfo.Create);
 
-                            if (defaultValue is not null)
-                                sb
-                                    .Append(" = ")
-                                    .Append(defaultValue);
+                        var baseProps = baseType
+                            ?.Properties
+                            .Where(i => i.Value.Type is not "literal")
+                            .Select(PropertyInfo.Create)
+                            .Select(i => i.PropertyName)
+                            .ToList() ?? [];
 
+                        var props = currentProps.Select(prop =>
+                        {
+                            StringBuilder sb = new("    ");
+                            if (!baseProps.Contains(prop.PropertyName))
+                                sb.Append(prop.JsonAttributes).Append(' ');
+
+                            sb.Append(prop.ParameterDeclaration);
                             return sb.ToString();
                         });
 
-                    var sortedProps = props
-                        .Where(i => !i.Contains('='))
-                        .Concat(props.Where(i => i.Contains('=')));
+                        var sortedProps = props
+                            .Where(i => !i.Contains('='))
+                            .Concat(props.Where(i => i.Contains('=')));
 
-                    await writer.WriteAsync(string.Join(",\n", sortedProps) + ")");
+                        await writer.WriteAsync(string.Join($",{writer.NewLine}", sortedProps));
 
-                    if (!string.IsNullOrEmpty(objectTypeInfoData.BaseType))
-                        await writer.WriteAsync($" : {objectTypeInfoData.BaseType.Pascalize()}");
-
-                    await writer.WriteLineAsync(";");
-
+                        if (!string.IsNullOrEmpty(currentType.BaseType))
+                        {
+                            await writer.WriteAsync($") : {currentType.BaseType.Pascalize()}({writer.NewLine}    ");
+                            await writer.WriteAsync(string.Join($",{writer.NewLine}    ", baseProps));
+                        }
+                        await writer.WriteLineAsync(");");
+                    }
                     break;
-                case UnionTypeInfoData unionTypeInfoData:
-                    await writer.WriteLineAsync($"[JsonPolymorphic(TypeDiscriminatorPropertyName = \"{unionTypeInfoData.Discriminator}\")]");
-                    foreach (var trueType in unionTypeInfoData.Types)
-                        await writer.WriteLineAsync($"[JsonDerivedType(typeof({trueType.Value.Pascalize()}), \"{trueType.Key}\")]");
+                case GenericTypeInfoData genericTypeInfoData when types[genericTypeInfoData.BaseType] is IObjectTypeInfoData baseType:
+                    {
+                        var baseProps = baseType
+                            .Properties
+                            .Where(i => i.Value.Type is not "literal")
+                            .Select(PropertyInfo.Create);
+                        var props = baseProps
+                            .Select(prop => prop.ParameterDeclaration);
 
-                    await writer.WriteLineAsync($"public abstract record class {pascalTypeName};");
+                        await writer.WriteLineAsync($"/// <inheritdoc cref=\"{genericTypeInfoData.BaseType.Pascalize()}\"/>");
+                        await writer.WriteLineAsync($"public sealed record class {pascalTypeName}(");
+                        foreach (var prop in props.Where(i => !i.Contains('=')))
+                            await writer.WriteLineAsync($"    {prop},");
 
+                        await writer.WriteAsync($"    [property: JsonPropertyName(\"{genericTypeInfoData.GenericPropertyName}\")] T {genericTypeInfoData.GenericPropertyName.Pascalize()}");
+                        foreach (var prop in props.Where(i => i.Contains('=')))
+                            await writer.WriteAsync($",{writer.NewLine}    {prop}");
+
+                        await writer.WriteLineAsync();
+                        await writer.WriteLineAsync($") : {genericTypeInfoData.BaseType.Pascalize()}(");
+                        await writer.WriteLineAsync(string.Join($",{writer.NewLine}", baseProps
+                            .Select(prop => $"    {prop.JsonPropertyName.Pascalize()}")));
+                        await writer.WriteLineAsync(");");
+                    }
                     break;
                 case EnumTypeInfoData enumTypeInfoData:
                     if (!enumTypeInfoData.Items.FirstOrDefault().Value.Number.HasValue)
@@ -165,17 +179,67 @@ internal sealed class GenerateCommand
             }
             """);
     }
+}
 
-    static string ParseTypeName(string typeName) => typeName switch
+file sealed record class PropertyInfo(string TypeName, string JsonPropertyName, string? DefaultValue)
+{
+    public string TypeName { get; } = ParseTypeName(TypeName, JsonPropertyName);
+    public string PropertyName { get; } = JsonPropertyName.Pascalize();
+
+    public string JsonAttributes
     {
-        "string" => "string",
-        "boolean" => "bool",
-        "Int32" => "int",
-        "Int64" => "long",
-        "string?" => "string?",
-        "boolean?" => "bool?",
-        "Int32?" => "int?",
-        "Int64?" => "long?",
-        _ => typeName.Pascalize()
-    };
+        get
+        {
+            var result = $"[property: JsonPropertyName(\"{JsonPropertyName}\")]";
+            if (TypeName.Contains("DateTimeOffset"))
+                result += "[property: JsonConverter(typeof(SecondTimestampDateTimeOffsetJsonConverter))]";
+
+            return result;
+        }
+    }
+
+    public string ParameterDeclaration
+    {
+        get
+        {
+            var result = $"{TypeName} {PropertyName}";
+            if (DefaultValue is not null)
+                result += $" = {DefaultValue}";
+
+            return result;
+        }
+    }
+
+    public static PropertyInfo Create(KeyValuePair<string, PropertyInfoData> property)
+    {
+        string? defaultValue = null;
+        var typeName = property.Value.Type;
+        if (typeName.Contains('='))
+        {
+            var tmp = typeName.Split('=', 2, StringSplitOptions.TrimEntries);
+            typeName = tmp[0];
+            defaultValue = tmp[1];
+        }
+        return new(typeName, property.Key, defaultValue);
+    }
+
+    static string ParseTypeName(string typeName, string propertyName)
+    {
+        bool isNullable = typeName.EndsWith('?');
+        if (isNullable)
+            typeName = typeName[..^1];
+
+        typeName = typeName switch
+        {
+            "string" when propertyName.Contains("uri", StringComparison.OrdinalIgnoreCase) => "MilkyUri",
+            "string" => "string",
+            "boolean" => "bool",
+            "Int32" => "int",
+            "Int64" when propertyName.Contains("time", StringComparison.OrdinalIgnoreCase) => "DateTimeOffset",
+            "Int64" => "long",
+            _ => typeName.Pascalize()
+        };
+
+        return isNullable ? $"{typeName}?" : typeName;
+    }
 }
