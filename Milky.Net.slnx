@@ -21,6 +21,5 @@
   </Folder>
   <Project Path="src/Milky.Net.Client/Milky.Net.Client.csproj" />
   <Project Path="src/Milky.Net.Model/Milky.Net.Model.csproj" />
-  <Project Path="src/Milky.Net.Server.Lagrange/Milky.Net.Server.Lagrange.csproj" />
   <Project Path="src/Milky.Net.Server/Milky.Net.Server.csproj" />
 </Solution>
