@@ -1,6 +1,6 @@
 declare module 'zod' {
   interface GlobalMeta {
-    scalarType?: string;
+    scalarType?: string
   }
 }
-export { };
+export {}

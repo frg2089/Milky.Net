@@ -40,13 +40,8 @@
     "skipLibCheck": true,
 
     "paths": {
-      "@milky/*": [
-        "../lib/milky/packages/*"
-      ]
+      "@milky/*": ["../lib/milky/packages/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "../lib/milky/packages/**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "../lib/milky/packages/**/*.ts"]
 }

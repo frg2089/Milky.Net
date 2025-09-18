@@ -8,7 +8,7 @@ on:
     tags:
       - v*
     paths:
-      - .github/workflows/CI.yaml      
+      - .github/workflows/CI.yaml
       - .config/dotnet-tools.json
       - global.json
       - nuget.config
@@ -16,8 +16,8 @@ on:
       - Directory.Build.props
       - Directory.Build.targets
       - Directory.Packages.props
-      - "generator/**/*"
-      - "src/**/*"
+      - 'generator/**/*'
+      - 'src/**/*'
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -26,7 +26,7 @@ on:
       - master
       - develop
     paths:
-      - .github/workflows/CI.yaml      
+      - .github/workflows/CI.yaml
       - .config/dotnet-tools.json
       - global.json
       - nuget.config
@@ -34,8 +34,8 @@ on:
       - Directory.Build.props
       - Directory.Build.targets
       - Directory.Packages.props
-      - "generator/**/*"
-      - "src/**/*"
+      - 'generator/**/*'
+      - 'src/**/*'
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml

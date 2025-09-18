@@ -3,7 +3,7 @@ name: 检查 @saltify/milky-types 更新
 on:
   schedule:
     - cron: '0 0 * * *'
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   check:
@@ -23,7 +23,7 @@ jobs:
         name: Install pnpm
         with:
           run_install: false
-          
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -76,7 +76,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |-
-            gh pr create `
-              --title "Update @saltify/milky-types to ${{ steps.fetch.outputs.latest }}" `
-              --body "Current: ${{ steps.fetch.outputs.current }}`n`nLatest: ${{ steps.fetch.outputs.latest }}" `
-              --base 'master'
+          gh pr create `
+            --title "Update @saltify/milky-types to ${{ steps.fetch.outputs.latest }}" `
+            --body "Current: ${{ steps.fetch.outputs.current }}`n`nLatest: ${{ steps.fetch.outputs.latest }}" `
+            --base 'master'
