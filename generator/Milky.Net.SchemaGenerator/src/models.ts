@@ -1,22 +1,9 @@
+import * as Milky from "@saltify/milky-types";
+import { program } from "commander";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as Milky from "@saltify/milky-types";
-import { apiCategories } from "@saltify/milky-types/api";
 import { ZodObject, ZodType } from "zod";
-import {
-  isZodArray,
-  isZodBoolean,
-  isZodDefault,
-  isZodEnum,
-  isZodLazy,
-  isZodLiteral,
-  isZodNumber,
-  isZodObject,
-  isZodOptional,
-  isZodString,
-  isZodUnion,
-} from "./zod_utils.js";
-import { program } from "commander";
+import * as ZodUtils from "./zod_utils.js";
 
 program.option(
   "-o, --out <path>",
@@ -25,6 +12,10 @@ program.option(
 );
 
 program.parse();
+
+const scalarTypes = (arr =>
+  arr.flatMap(i => [i, `${i}WithDefault`])
+)(["ZBoolean", "ZInt32", "ZInt64", "ZString"])
 
 const types: Record<string, Types.TypeInfoData> = {};
 const enums: Array<Record<string, string> | Record<string, number>> = [];
@@ -39,13 +30,29 @@ const findTypeName = (type: ZodType): string | undefined => {
   }
 };
 
+const nullable = (type: string) => {
+  if (type.endsWith('?'))
+    return type;
+
+  return `${type}?`;
+}
+
 const parseSimpleTypeName = (schema: ZodType): string => {
-  if (isZodEnum(schema)) {
+  const metadata = schema.meta()
+  if (metadata?.scalarType) {
+    return metadata.scalarType;
+  }
+  
+  if (ZodUtils.isZodPipe(schema)) {
+    return parseSimpleTypeName(schema.in as any);
+  }
+
+  if (ZodUtils.isZodEnum(schema)) {
     enums.push(schema.enum as any);
     return "enum";
   }
 
-  if (isZodDefault(schema))
+  if (ZodUtils.isZodDefault(schema))
     return (
       parseSimpleTypeName(schema.def.innerType as ZodType) +
       " = " +
@@ -54,20 +61,23 @@ const parseSimpleTypeName = (schema: ZodType): string => {
         : schema.def.defaultValue)
     );
 
-  if (isZodOptional(schema))
-    return parseSimpleTypeName(schema.def.innerType as ZodType) + "?";
+  if (ZodUtils.isZodOptional(schema))
+    return nullable(parseSimpleTypeName(schema.def.innerType as ZodType));
 
-  if (isZodArray(schema))
+  if (ZodUtils.isZodNullable(schema))
+    return nullable(parseSimpleTypeName(schema.def.innerType as ZodType));
+
+  if (ZodUtils.isZodArray(schema))
     return parseSimpleTypeName(schema.element as ZodType) + "[]";
 
-  if (isZodLazy(schema)) schema = schema.unwrap() as ZodType;
+  if (ZodUtils.isZodLazy(schema)) schema = schema.unwrap() as ZodType;
 
-  if (isZodString(schema)) return "string";
+  if (ZodUtils.isZodString(schema)) return "string";
 
-  if (isZodBoolean(schema)) return "boolean";
+  if (ZodUtils.isZodBoolean(schema)) return "boolean";
 
-  if (isZodNumber(schema)) {
-    if (schema.format === "safeint") {
+  if (ZodUtils.isZodNumber(schema)) {
+    if (schema.format === "safeint") {      
       if (schema.minValue === 0) {
         // 无符号整数
         if (schema.maxValue == null) throw new Error("未设置无符号整数最大值");
@@ -95,7 +105,7 @@ const parseSimpleTypeName = (schema: ZodType): string => {
 };
 
 const parseObjectType = (schema: ZodType, schemaName: string) => {
-  if (isZodUnion(schema)) {
+  if (ZodUtils.isZodUnion(schema)) {
     const info: Types.UnionTypeInfoData = {
       type: "union",
       description: schema.description,
@@ -109,7 +119,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
     const props = Object.fromEntries(
       Object.entries((schema.def.options[0] as ZodObject).def.shape)
         .filter(
-          ([_, type]) => !isZodObject(type) && type.def.type !== "literal"
+          ([_, type]) => !ZodUtils.isZodObject(type) && type.def.type !== "literal"
         )
         .map(([name, info]) => [name, info as ZodType])
     );
@@ -184,7 +194,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
 
     return info;
   }
-  if (isZodObject(schema)) {
+  if (ZodUtils.isZodObject(schema)) {
     const typeInfo: Types.ObjectTypeInfoData = {
       type: "object",
       description: schema.description,
@@ -198,7 +208,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
           description: propertyType.description,
         };
 
-        if (isZodObject(propertyType)) {
+        if (ZodUtils.isZodObject(propertyType)) {
           const name =
             findTypeName(propertyType) ?? `${schemaName}_${propertyName}`;
           const typeInfo = parseObjectType(propertyType, name);
@@ -211,7 +221,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
           info.type = propertyName;
         }
 
-        if (isZodLiteral(propertyType)) {
+        if (ZodUtils.isZodLiteral(propertyType)) {
           info.constants = propertyType.def.values as any;
         }
 
@@ -222,13 +232,15 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
     return typeInfo;
   }
 
-  throw new Error("不受支持的类型");
+  throw new Error("不受支持的类型", {
+    cause: schema,
+  });
 };
 
 Object.entries(Milky).forEach(([typeName, type]) => {
   // 排除 milkyVersion 和 milkyPackageVersion
   if (typeof type === "string") return;
-  if (["ZBoolean", "ZInt32", "ZInt64", "ZString"].includes(typeName)) return;
+  if (scalarTypes.includes(typeName)) return;
 
   types[typeName] = parseObjectType(type as any, typeName);
 });

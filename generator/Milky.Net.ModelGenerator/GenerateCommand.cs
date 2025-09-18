@@ -240,9 +240,9 @@ file sealed record class PropertyInfo(string TypeName, string JsonPropertyName, 
             "string" when propertyName.Contains("uri", StringComparison.OrdinalIgnoreCase) => "MilkyUri",
             "string" => "string",
             "boolean" => "bool",
-            "Int32" => "int",
-            "Int64" when propertyName.Contains("time", StringComparison.OrdinalIgnoreCase) => "DateTimeOffset",
-            "Int64" => "long",
+            "int32" or "Int32" => "int",
+            "int64" or "Int64" when propertyName.Contains("time", StringComparison.OrdinalIgnoreCase) => "DateTimeOffset",
+            "int64" or "Int64" => "long",
             _ => typeName.Pascalize()
         };
 

@@ -5,12 +5,14 @@ import type {
   ZodEnum,
   ZodLazy,
   ZodLiteral,
+  ZodNullable,
   ZodNumber,
   ZodObject,
   ZodOptional,
+  ZodPipe,
   ZodString,
   ZodType,
-  ZodUnion,
+  ZodUnion
 } from "zod";
 
 export const isZodLazy = (schema: ZodType): schema is ZodLazy =>
@@ -31,6 +33,9 @@ export const isZodBoolean = (schema: ZodType): schema is ZodBoolean =>
 export const isZodOptional = (schema: ZodType): schema is ZodOptional =>
   schema.def.type === "optional";
 
+export const isZodNullable = (schema: ZodType): schema is ZodNullable =>
+  schema.def.type === "nullable";
+
 export const isZodDefault = (schema: ZodType): schema is ZodDefault =>
   schema.def.type === "default";
 
@@ -45,3 +50,6 @@ export const isZodUnion = (schema: ZodType): schema is ZodUnion =>
 
 export const isZodLiteral = (schema: ZodType): schema is ZodLiteral =>
   schema.def.type === "literal";
+
+export const isZodPipe = (schema: ZodType): schema is ZodPipe =>
+  schema.def.type === "pipe";
