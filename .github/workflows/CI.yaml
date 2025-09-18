@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - develop
+      - update/milky-types
     tags:
       - v*
     paths:
