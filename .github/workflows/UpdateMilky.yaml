@@ -46,8 +46,8 @@ jobs:
         if: ${{ steps.fetch.outputs.outdated == 'True' }}
         shell: pwsh
         run: |-
-          git switch --force-create 'update/${{ steps.fetch.outputs.latest }}'
-          git push origin 'update/${{ steps.fetch.outputs.latest }}' --force
+          git switch --force-create 'update/milky-types'
+          git push origin 'update/milky-types' --force
 
       - name: 更新 @saltify/milky-types
         if: ${{ steps.fetch.outputs.outdated == 'True' }}
@@ -64,7 +64,7 @@ jobs:
           pnpm dlx @pirafrank/github-commit-sign commit `
             --owner $tmp[0] `
             --repo $tmp[1] `
-            --branch 'update/${{ steps.fetch.outputs.latest }}' `
+            --branch 'update/milky-types' `
             --changed 'generator/Milky.Net.SchemaGenerator/package.json' `
             --changed 'pnpm-lock.yaml' `
             --commitMessage 'Update @saltify/milky-types' `
