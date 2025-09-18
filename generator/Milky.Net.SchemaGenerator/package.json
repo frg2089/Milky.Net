@@ -15,7 +15,7 @@
     "@types/node": "^24.3.0"
   },
   "dependencies": {
-    "@saltify/milky-types": "1.0.0-draft.14",
+    "@saltify/milky-types": "1.0.0-draft.16",
     "commander": "^14.0.0",
     "tsx": "^4.20.5",
     "zod": "^4.0.17"
