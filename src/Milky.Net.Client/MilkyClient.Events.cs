@@ -11,7 +11,7 @@ public sealed partial class MilkyClient
     /// <summary>
     /// Milky 事件
     /// </summary>
-    public MilkyEventScheduler Events { get; }
+    public IMilkyEventScheduler Events { get; }
 
     /// <summary>
     /// 通过 Server-Sent Events 接收事件

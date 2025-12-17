@@ -116,11 +116,12 @@ public sealed class ApiEndpointsClientGenerator : IIncrementalGenerator
                         /// </summary>
                         /// <param name="client">Http 客户端实例</param>
                         /// <param name="middleware">请求中间件</param>
-                        public MilkyClient(HttpClient client, IEnumerable<IMilkyClientMiddleware>? middleware = default)
+                        /// <param name="schedulerFactory">事件调度器，默认为<cref="MilkyEventScheduler"/></param>
+                        public MilkyClient(HttpClient client, IEnumerable<IMilkyClientMiddleware>? middleware = default, Func<MilkyClient, IMilkyEventScheduler>? schedulerFactory = null)
                         {
                             _client = client;
                             _middleware = middleware?.Reverse().ToImmutableArray() ?? [];
-                            Events = new(this);
+                            Events = schedulerFactory is not null ? schedulerFactory(this) : new MilkyEventScheduler(this);
                             {{constructor}}
                         }
                         {{properties}}
