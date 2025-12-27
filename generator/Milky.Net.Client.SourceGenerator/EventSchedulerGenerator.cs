@@ -61,7 +61,7 @@ public sealed class EventSchedulerGenerator : IIncrementalGenerator
                     public sealed partial class MilkyEventScheduler
                     {{{eventWriter}}
                     
-                        internal partial void Received(Event @event)
+                        public partial void Received(Event @event)
                         {
                             switch (@event)
                             {
