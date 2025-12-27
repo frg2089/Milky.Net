@@ -229,9 +229,9 @@ file sealed record class PropertyInfo(string TypeName, string JsonPropertyName, 
         return new(typeName, property.Key, defaultValue);
     }
 
-    static string ParseTypeName(string typeName, string propertyName)
+    private static string ParseTypeName(string typeName, string propertyName)
     {
-        bool isNullable = typeName.EndsWith('?');
+        var isNullable = typeName.EndsWith('?');
         if (isNullable)
             typeName = typeName[..^1];
 

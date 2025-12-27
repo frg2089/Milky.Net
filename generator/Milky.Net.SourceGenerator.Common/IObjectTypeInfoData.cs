@@ -1,6 +1,6 @@
 ﻿namespace Milky.Net.SourceGenerator.Common;
 
-interface IObjectTypeInfoData
+internal interface IObjectTypeInfoData
 {
     string? Description { get; }
     Dictionary<string, PropertyInfoData> Properties { get; }
