@@ -2,6 +2,7 @@
   <PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
     <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <GitVersionTargetFramework>net10.0</GitVersionTargetFramework>
     <UseProjectNamespaceForGitVersionInformation>true</UseProjectNamespaceForGitVersionInformation>
   </PropertyGroup>

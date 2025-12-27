@@ -65,8 +65,8 @@ jobs:
       - name: 配置 .Net 环境
         uses: actions/setup-dotnet@v5
         with:
-          global-json-file: ./global.json
-          cache: false
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
 
       - name: 还原
         run: dotnet restore --graph --artifacts-path artifacts
