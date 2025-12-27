@@ -13,7 +13,7 @@
           Condition="'$(IsCrossTargetingBuild)' != 'true'">
 
     <PropertyGroup>
-      <_ModelGeneratorCommand>dotnet --roll-forward Major &quot;@(_ModelGeneratorOutput)&quot;</_ModelGeneratorCommand>
+      <_ModelGeneratorCommand>dotnet --roll-forward Major "@(_ModelGeneratorOutput)"</_ModelGeneratorCommand>
       <_MilkyOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</_MilkyOutputPath>
       <_MilkyTypePath>$(_MilkyOutputPath)MilkyTypes.json</_MilkyTypePath>
       <_MilkyTypeOutput>$(_MilkyOutputPath)Generated\</_MilkyTypeOutput>
