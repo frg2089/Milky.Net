@@ -25,7 +25,7 @@ public sealed class FileFetcher(HttpClient httpClient) : IFileFetcher
         try
         {
             // 使用 Uri.LocalPath 获取解码后的本地路径
-            string localPath = uri.LocalPath;
+            var localPath = uri.LocalPath;
 
             // 验证路径是否存在
             if (!File.Exists(localPath))

@@ -47,7 +47,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: 签出仓库
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
           fetch-depth: 0
@@ -57,16 +57,16 @@ jobs:
         with:
           run_install: false
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: latest
           cache: pnpm
 
       - name: 配置 .Net 环境
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          global-json-file: ./global.json
-          cache: false
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
 
       - name: 还原
         run: dotnet restore --graph --artifacts-path artifacts
@@ -78,7 +78,7 @@ jobs:
         run: dotnet pack --graph --artifacts-path artifacts --configuration Release --no-restore --no-build --include-symbols
 
       - name: 收集 Nuget 包
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nuget-packages
           path: |
@@ -95,18 +95,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 签出仓库
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           sparse-checkout: ''
 
       - name: 配置 .Net 环境
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           global-json-file: ./global.json
           cache: false
 
       - name: Download a Build Artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: nuget-packages
           path: artifacts
