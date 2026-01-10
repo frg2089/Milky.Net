@@ -243,6 +243,7 @@ file sealed record class PropertyInfo(string TypeName, string JsonPropertyName, 
             "int32" or "Int32" => "int",
             "int64" or "Int64" when propertyName.Contains("time", StringComparison.OrdinalIgnoreCase) => "DateTimeOffset",
             "int64" or "Int64" => "long",
+            "uin" or "Uin" => "long",
             _ => typeName.Pascalize()
         };
 
