@@ -24,8 +24,8 @@ importers:
   generator/Milky.Net.SchemaGenerator:
     dependencies:
       '@saltify/milky-types':
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.1.0
+        version: 1.1.0
       commander:
         specifier: ^14.0.0
         version: 14.0.0
@@ -198,8 +198,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@saltify/milky-types@1.0.0':
-    resolution: {integrity: sha512-2xaPdHUM/gdqyZXkmv26/NIXZn1Snlsb/50zto8zXp3soNKlUQCfoRZRpQdD3auEqs686ol7TIqIemlxxDgySA==}
+  '@saltify/milky-types@1.1.0':
+    resolution: {integrity: sha512-ixm10sI+7ZAykPfKxWPEZ/Ag94gkDL/WSYPFBON0MIuunUiNHl6R9ISpXDS2aLH3SO5toav52pOwvFt5EcVbbw==}
 
   '@types/node@24.3.0':
     resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
@@ -260,6 +260,9 @@ packages:
 
   zod@4.1.5:
     resolution: {integrity: sha512-rcUUZqlLJgBC33IT3PNMgsCq6TzLQEG/Ei/KTCU0PedSWRMAXoOUN+4t/0H+Q8bdnLPdqUYnvboJT0bn/229qg==}
+
+  zod@4.3.5:
+    resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
 
 snapshots:
 
@@ -341,9 +344,9 @@ snapshots:
   '@esbuild/win32-x64@0.25.9':
     optional: true
 
-  '@saltify/milky-types@1.0.0':
+  '@saltify/milky-types@1.1.0':
     dependencies:
-      zod: 4.1.5
+      zod: 4.3.5
 
   '@types/node@24.3.0':
     dependencies:
@@ -412,3 +415,5 @@ snapshots:
   undici-types@7.10.0: {}
 
   zod@4.1.5: {}
+
+  zod@4.3.5: {}
