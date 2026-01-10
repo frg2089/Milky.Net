@@ -4,6 +4,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { ZodObject, ZodType } from 'zod'
 import * as ZodUtils from './zod_utils.js'
+import * as changeCase from "change-case";
 
 program.option(
   '-o, --out <path>',
@@ -261,7 +262,8 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
 
 const types = objectTypes.reduce(
   (types, [typeName, type]) => {
-    types[typeName] = parseObjectType(type as any, typeName)
+    const pascalCaseName = changeCase.pascalCase(typeName)
+    types[pascalCaseName] = parseObjectType(type as any, typeName)
     return types
   },
   {} as Record<string, Types.TypeInfoData>,
