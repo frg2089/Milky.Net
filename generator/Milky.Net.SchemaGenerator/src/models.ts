@@ -17,6 +17,7 @@ const scalarTypes = (arr => arr.flatMap(i => [i, `${i}WithDefault`]))([
   'ZBoolean',
   'ZInt32',
   'ZInt64',
+  'ZUin',
   'ZString',
 ])
 
@@ -235,7 +236,7 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
     return typeInfo
   }
 
-  throw new Error('不受支持的类型', {
+  throw new Error(`不受支持的类型 ${schemaName}`, {
     cause: schema,
   })
 }
