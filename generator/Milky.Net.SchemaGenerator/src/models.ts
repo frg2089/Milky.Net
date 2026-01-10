@@ -13,15 +13,33 @@ program.option(
 
 program.parse()
 
-const scalarTypes = (arr => arr.flatMap(i => [i, `${i}WithDefault`]))([
-  'ZBoolean',
-  'ZInt32',
-  'ZInt64',
-  'ZUin',
-  'ZString',
-])
+const scalarTypeNames: string[] = []
+const objectTypes: Array<[string, ZodType]> = []
 
-const types: Record<string, Types.TypeInfoData> = {}
+Object.entries(Milky).forEach(([typeName, type]) => {
+  // 排除 milkyVersion 和 milkyPackageVersion
+  if (typeof type === 'string') return
+  if (typeof type === 'function') {
+    scalarTypeNames.push(typeName)
+    return
+  }
+
+  switch (type.type) {
+    case 'string':
+    case 'boolean':
+    case 'number':
+      scalarTypeNames.push(typeName)
+      break
+    case 'object':
+    case 'union':
+      objectTypes.push([typeName, type as any])
+      break
+
+    default:
+      throw new Error(`unknown type ${typeName}`)
+  }
+})
+
 const enums: Array<Record<string, string> | Record<string, number>> = []
 const enumInfos: [string, Types.PropertyInfoData][] = []
 
@@ -241,13 +259,13 @@ const parseObjectType = (schema: ZodType, schemaName: string) => {
   })
 }
 
-Object.entries(Milky).forEach(([typeName, type]) => {
-  // 排除 milkyVersion 和 milkyPackageVersion
-  if (typeof type === 'string') return
-  if (scalarTypes.includes(typeName)) return
-
-  types[typeName] = parseObjectType(type as any, typeName)
-})
+const types = objectTypes.reduce(
+  (types, [typeName, type]) => {
+    types[typeName] = parseObjectType(type as any, typeName)
+    return types
+  },
+  {} as Record<string, Types.TypeInfoData>,
+)
 
 enumInfos.forEach(([name, property], i) => {
   const item = enums[i]
