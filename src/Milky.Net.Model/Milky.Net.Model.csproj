@@ -18,10 +18,6 @@
       <_MilkyTypePath>$(_MilkyOutputPath)MilkyTypes.json</_MilkyTypePath>
       <_MilkyTypeOutput>$(_MilkyOutputPath)Generated\</_MilkyTypeOutput>
     </PropertyGroup>
-    <Exec Command="pnpm run --silent gen:models --out &quot;$(_MilkyTypePath)&quot;"
-          WorkingDirectory="$(GeneratorDirectory)Milky.Net.SchemaGenerator"
-          EchoOff="true"
-          UseUtf8Encoding="Always" />
 
     <Exec Command="$(_ModelGeneratorCommand) list --input &quot;$(_MilkyTypePath)&quot;"
           WorkingDirectory="$(GeneratorDirectory)Milky.Net.ModelGenerator"

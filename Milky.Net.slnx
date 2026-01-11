@@ -3,10 +3,6 @@
     <Project Path="generator/Milky.Net.Client.SourceGenerator/Milky.Net.Client.SourceGenerator.csproj" />
     <Project Path="generator/Milky.Net.Server.SourceGenerator/Milky.Net.Server.SourceGenerator.csproj" />
     <Project Path="generator/Milky.Net.ModelGenerator/Milky.Net.ModelGenerator.csproj" />
-    <Project Path="generator/Milky.Net.SchemaGenerator/Milky.Net.SchemaGenerator.esproj">
-      <Build />
-      <Deploy />
-    </Project>
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />

@@ -37,9 +37,6 @@ on:
       - Directory.Packages.props
       - 'generator/**/*'
       - 'src/**/*'
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
 
 jobs:
   build:
@@ -51,16 +48,6 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          run_install: false
-      - name: Install Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: latest
-          cache: pnpm
 
       - name: 配置 .Net 环境
         uses: actions/setup-dotnet@v5
