@@ -1,21 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Target Name="GenerateMilkyModelMetadata"
-          BeforeTargets="CoreCompile">
-    <PropertyGroup>
-      <_MilkyOutputPath>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)'))</_MilkyOutputPath>
-      <_MilkyApiPath>$(_MilkyOutputPath)ApiEndpoints.json</_MilkyApiPath>
-    </PropertyGroup>
-    <Exec Command="pnpm run --silent gen:apis --out &quot;$(_MilkyApiPath)&quot;"
-          WorkingDirectory="$(GeneratorDirectory)Milky.Net.SchemaGenerator"
-          EchoOff="true" />
-
-    <ItemGroup>
-      <AdditionalFiles Include="$(_MilkyApiPath)" Link="ApiEndpoints.json" />
-    </ItemGroup>
-  </Target>
   <ItemGroup>
-    <ProjectReference Include="$(GeneratorDirectory)Milky.Net.Server.SourceGenerator\Milky.Net.Server.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Milky.Net.Model\Milky.Net.Model.csproj" />
   </ItemGroup>
 

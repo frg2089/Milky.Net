@@ -58,6 +58,10 @@ jobs:
       - name: 还原
         run: dotnet restore --graph --artifacts-path artifacts
 
+      - name: 初始化
+        shell: pwsh
+        run: ./scripts/Init-Project.ps1
+
       - name: 生成
         run: dotnet build --graph --artifacts-path artifacts --configuration Release --no-restore
 

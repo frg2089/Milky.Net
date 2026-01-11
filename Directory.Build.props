@@ -55,4 +55,6 @@
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)Milky.props" Condition="Exists('$(MSBuildThisFileDirectory)Milky.props')" />
+
 </Project>
