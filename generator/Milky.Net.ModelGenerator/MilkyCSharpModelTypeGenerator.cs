@@ -112,14 +112,13 @@ internal static class MilkyCSharpModelTypeGenerator
     {
         IEnumerable<Field> unionFields = (baseFields ?? []).SortFields();
 
+        var converterTypeName = $"{unionTypeName}JsonConverter";
+
         StringBuilder builder = new();
         builder
             .AppendSummary(union)
             .AppendParams(unionFields)
-            .AppendJsonPolymorphic(union.TagFieldName);
-
-        foreach (var item in union.DerivedStructs)
-            builder.AppendJsonDerivedType($"{item.TagValue}_{union.Name}".Pascalize(), item.TagValue);
+            .AppendLine($"[global::System.Text.Json.Serialization.JsonConverter(typeof({converterTypeName}))]");
 
         builder
             .AppendTypeDefine(unionTypeName, true)
@@ -144,6 +143,78 @@ internal static class MilkyCSharpModelTypeGenerator
         foreach (var item in union.DerivedStructs
             .SelectMany(i => ParseType($"{i.TagValue}_{union.Name}".Pascalize(), i, unionTypeName, unionFields)))
             yield return item;
+
+        yield return (converterTypeName, GenerateSimpleUnionConverter(converterTypeName, unionTypeName, union));
+    }
+
+    private static string GenerateSimpleUnionConverter(
+        string converterTypeName,
+        string unionTypeName,
+        SimpleUnionType union)
+    {
+        var tagFieldName = union.TagFieldName;
+        var innerConverterTypeName = $"{unionTypeName}InnerJsonConverter";
+
+        StringBuilder readSwitchArms = new();
+        foreach (var derived in union.DerivedStructs)
+        {
+            var typeName = $"{derived.TagValue}_{union.Name}".Pascalize();
+            readSwitchArms.AppendLine($"                \"{derived.TagValue}\" => global::System.Text.Json.JsonSerializer.Deserialize(obj, MilkyJsonSerializerContext.Default.{typeName}),");
+        }
+
+        StringBuilder writeSwitchArms = new();
+        foreach (var derived in union.DerivedStructs)
+        {
+            var typeName = $"{derived.TagValue}_{union.Name}".Pascalize();
+            writeSwitchArms.AppendLine($"                {typeName} derived => SerializeDerived(derived, \"{derived.TagValue}\", MilkyJsonSerializerContext.Default.{typeName}),");
+        }
+
+        return $$"""
+            public sealed class {{converterTypeName}} : global::System.Text.Json.Serialization.JsonConverterFactory
+            {
+                public override bool CanConvert(global::System.Type typeToConvert)
+                    => typeToConvert == typeof({{unionTypeName}});
+
+                public override global::System.Text.Json.Serialization.JsonConverter? CreateConverter(global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+                    => new {{innerConverterTypeName}}();
+
+                private sealed class {{innerConverterTypeName}} : global::System.Text.Json.Serialization.JsonConverter<{{unionTypeName}}>
+                {
+                    public override {{unionTypeName}}? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+                    {
+                        var obj = global::System.Text.Json.Nodes.JsonNode.Parse(ref reader)?.AsObject()
+                            ?? throw new global::System.Text.Json.JsonException("Expected a JSON object.");
+
+                        var tag = obj["{{tagFieldName}}"]?.GetValue<string>()
+                            ?? throw new global::System.Text.Json.JsonException("Missing discriminator '{{tagFieldName}}'.");
+
+                        return tag switch
+                        {
+            {{readSwitchArms}}                _ => throw new global::System.Text.Json.JsonException($"Unknown {{tagFieldName}}: '{tag}'."),
+                        };
+                    }
+
+                    public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{unionTypeName}} value, global::System.Text.Json.JsonSerializerOptions options)
+                    {
+                        var node = value switch
+                        {
+            {{writeSwitchArms}}                _ => throw new global::System.Text.Json.JsonException($"Unknown derived type: '{value.GetType().Name}'."),
+                        };
+
+                        node.WriteTo(writer, options);
+                    }
+
+                    private static global::System.Text.Json.Nodes.JsonObject SerializeDerived<T>(T value, string tagValue, global::System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo)
+                    {
+                        var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, typeInfo)?.AsObject()
+                            ?? throw new global::System.Text.Json.JsonException("Serialization produced null.");
+
+                        node["{{tagFieldName}}"] = tagValue;
+                        return node;
+                    }
+                }
+            }
+            """;
     }
 
     private static IEnumerable<(string TypeName, string TypeCode)> ParseWithDataUnion(
@@ -154,20 +225,13 @@ internal static class MilkyCSharpModelTypeGenerator
     {
         var unionFields = union.BaseFields.ConcatBase(baseFields ?? []).SortFields();
 
+        var converterTypeName = $"{unionTypeName}JsonConverter";
+
         StringBuilder builder = new();
         builder
             .AppendSummary(union)
             .AppendParams(unionFields)
-            .AppendJsonPolymorphic(union.TagFieldName);
-
-        foreach (var item in union.DerivedTypes)
-        {
-            var typeName = item is RefDerivedType refDerivedType
-                ? refDerivedType.RefStructName
-                : $"{item.TagValue}_{union.Name}";
-
-            builder.AppendJsonDerivedType(typeName.Pascalize(), item.TagValue);
-        }
+            .AppendLine($"[global::System.Text.Json.Serialization.JsonConverter(typeof({converterTypeName}))]");
 
         builder
             .AppendTypeDefine(unionTypeName, true)
@@ -194,6 +258,117 @@ internal static class MilkyCSharpModelTypeGenerator
         foreach (var item in union.DerivedTypes
             .SelectMany(i => ParseType($"{i.TagValue}_{union.Name}".Pascalize(), i, unionTypeName, unionFields)))
             yield return item;
+
+        yield return (converterTypeName, GenerateWithDataConverter(converterTypeName, unionTypeName, union));
+    }
+
+    private static string GenerateWithDataConverter(
+        string converterTypeName,
+        string unionTypeName,
+        AdvancedUnionType union)
+    {
+        var tagFieldName = union.TagFieldName;
+
+        StringBuilder readSwitchArms = new();
+        foreach (var derived in union.DerivedTypes)
+        {
+            var typeName = derived is RefDerivedType refDerived
+                ? refDerived.RefStructName.Pascalize()
+                : $"{derived.TagValue}_{union.Name}".Pascalize();
+            readSwitchArms.AppendLine($"                \"{derived.TagValue}\" => global::System.Text.Json.JsonSerializer.Deserialize(Flatten(obj), MilkyJsonSerializerContext.Default.{typeName}),");
+        }
+
+        StringBuilder writeSwitchArms = new();
+        foreach (var derived in union.DerivedTypes)
+        {
+            var typeName = derived is RefDerivedType refDerived
+                ? refDerived.RefStructName.Pascalize()
+                : $"{derived.TagValue}_{union.Name}".Pascalize();
+            writeSwitchArms.AppendLine($"                {typeName} derived => Unflatten(derived, \"{derived.TagValue}\", MilkyJsonSerializerContext.Default.{typeName}),");
+        }
+
+        var baseFieldNames = union.BaseFields
+            .Select(f => $"\"{f.Name}\"")
+            .ToList();
+        baseFieldNames.Add($"\"{tagFieldName}\"");
+        var baseFieldNamesJoined = string.Join(", ", baseFieldNames);
+
+        var innerConverterTypeName = $"{unionTypeName}InnerJsonConverter";
+
+        return $$"""
+            public sealed class {{converterTypeName}} : global::System.Text.Json.Serialization.JsonConverterFactory
+            {
+                public override bool CanConvert(global::System.Type typeToConvert)
+                    => typeToConvert == typeof({{unionTypeName}});
+
+                public override global::System.Text.Json.Serialization.JsonConverter? CreateConverter(global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+                    => new {{innerConverterTypeName}}();
+
+                private sealed class {{innerConverterTypeName}} : global::System.Text.Json.Serialization.JsonConverter<{{unionTypeName}}>
+                {
+                    private static readonly string[] s_baseFieldNames = [{{baseFieldNamesJoined}}];
+
+                    public override {{unionTypeName}}? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+                    {
+                        var obj = global::System.Text.Json.Nodes.JsonNode.Parse(ref reader)?.AsObject()
+                            ?? throw new global::System.Text.Json.JsonException("Expected a JSON object.");
+
+                        var tag = obj["{{tagFieldName}}"]?.GetValue<string>()
+                            ?? throw new global::System.Text.Json.JsonException("Missing discriminator '{{tagFieldName}}'.");
+
+                        return tag switch
+                        {
+            {{readSwitchArms}}                _ => throw new global::System.Text.Json.JsonException($"Unknown {{tagFieldName}}: '{tag}'."),
+                        };
+                    }
+
+                    public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{unionTypeName}} value, global::System.Text.Json.JsonSerializerOptions options)
+                    {
+                        var node = value switch
+                        {
+            {{writeSwitchArms}}                _ => throw new global::System.Text.Json.JsonException($"Unknown derived type: '{value.GetType().Name}'."),
+                        };
+
+                        node.WriteTo(writer, options);
+                    }
+
+                    private static global::System.Text.Json.Nodes.JsonObject Flatten(global::System.Text.Json.Nodes.JsonObject obj)
+                    {
+                        if (obj.Remove("data", out var dataNode) && dataNode is global::System.Text.Json.Nodes.JsonObject dataObj)
+                        {
+                            foreach (var prop in dataObj.ToArray())
+                            {
+                                dataObj.Remove(prop.Key);
+                                obj[prop.Key] = prop.Value;
+                            }
+                        }
+                        return obj;
+                    }
+
+                    private static global::System.Text.Json.Nodes.JsonObject Unflatten<T>(T value, string tagValue, global::System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo)
+                    {
+                        var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, typeInfo)?.AsObject()
+                            ?? throw new global::System.Text.Json.JsonException("Serialization produced null.");
+
+                        var data = new global::System.Text.Json.Nodes.JsonObject();
+                        foreach (var prop in node.ToArray())
+                        {
+                            if (global::System.Array.IndexOf(s_baseFieldNames, prop.Key) < 0)
+                            {
+                                node.Remove(prop.Key);
+                                data[prop.Key] = prop.Value;
+                            }
+                        }
+
+                        node["{{tagFieldName}}"] = tagValue;
+                        if (data.Count > 0)
+                            node["data"] = data;
+
+                        return node;
+                    }
+                }
+            }
+            """;
     }
 
     private static IEnumerable<(string TypeName, string TypeCode)> ParseEnums(IEnumerable<Field> fields)
@@ -263,12 +438,6 @@ internal static class MilkyCSharpModelTypeGenerator
 
     extension(StringBuilder builder)
     {
-        public StringBuilder AppendJsonDerivedType(string typeName, string propertyValue)
-            => builder.AppendLine($"[global::System.Text.Json.Serialization.JsonDerivedType(typeof({typeName}), \"{propertyValue}\")]");
-
-        public StringBuilder AppendJsonPolymorphic(string propertyName)
-            => builder.AppendLine($"[global::System.Text.Json.Serialization.JsonPolymorphic(TypeDiscriminatorPropertyName = \"{propertyName}\")]");
-
         public StringBuilder AppendSummary(IMilkyType type)
             => builder.AppendLine($"""
             /// <summary>
