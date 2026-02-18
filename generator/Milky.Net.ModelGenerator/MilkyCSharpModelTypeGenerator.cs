@@ -316,33 +316,35 @@ internal static class MilkyCSharpModelTypeGenerator
                 {
                     if (obj.Remove("data", out var dataNode) && dataNode is global::System.Text.Json.Nodes.JsonObject dataObj)
                     {
-                        foreach (var prop in dataObj.ToArray())
+                        foreach (var baseField in s_baseFieldNames)
                         {
-                            dataObj.Remove(prop.Key);
-                            obj[prop.Key] = prop.Value;
+                            if (obj.Remove(baseField, out var value))
+                            {
+                                dataObj[baseField] = value;
+                            }
                         }
+                        return dataObj;
                     }
                     return obj;
                 }
 
                 private static global::System.Text.Json.Nodes.JsonObject Unflatten<T>(T value, string tagValue, global::System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo)
                 {
-                    var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, typeInfo)?.AsObject()
+                    var data = global::System.Text.Json.JsonSerializer.SerializeToNode(value, typeInfo)?.AsObject()
                         ?? throw new global::System.Text.Json.JsonException("Serialization produced null.");
 
-                    var data = new global::System.Text.Json.Nodes.JsonObject();
-                    foreach (var prop in node.ToArray())
+                    var node = new global::System.Text.Json.Nodes.JsonObject();
+                    foreach (var baseField in s_baseFieldNames)
                     {
-                        if (global::System.Array.IndexOf(s_baseFieldNames, prop.Key) < 0)
+                        if (data.Remove(baseField, out var fieldValue))
                         {
-                            node.Remove(prop.Key);
-                            data[prop.Key] = prop.Value;
+                            node[baseField] = fieldValue;
                         }
                     }
-
-                    node["{{tagFieldName}}"] = tagValue;
                     if (data.Count > 0)
                         node["data"] = data;
+
+                    node["{{tagFieldName}}"] = tagValue;
 
                     return node;
                 }
