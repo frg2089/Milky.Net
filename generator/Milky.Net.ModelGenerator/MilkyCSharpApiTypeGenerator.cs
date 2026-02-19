@@ -125,16 +125,16 @@ internal static class MilkyCSharpApiTypeGenerator
 
             var typeName = item is RefDerivedType refDerivedType
                 ? refDerivedType.RefStructName.Pascalize()
-                : $"{pascal}Event";
+                : $"{pascal}EventData";
 
             eventWriter.WriteLine($"""
                     
                     /// <inheritdoc cref="{typeName}" />
-                    public event ReceivedEventHandler<{typeName}>? {pascal};
+                    public event ReceivedEventHandler<Event<{typeName}>>? {pascal};
                 """);
             switchWriter.WriteLine($"""
 
-                            case {typeName} e:
+                            case Event<{typeName}> e:
                                 {pascal}?.Invoke(_client, e);
                                 return;
                 """);
