@@ -314,18 +314,17 @@ internal static class MilkyCSharpModelTypeGenerator
 
                 private static global::System.Text.Json.Nodes.JsonObject Flatten(global::System.Text.Json.Nodes.JsonObject obj)
                 {
-                    if (obj.Remove("data", out var dataNode) && dataNode is global::System.Text.Json.Nodes.JsonObject dataObj)
+                    if (!obj.Remove("data", out var dataNode) || dataNode is not global::System.Text.Json.Nodes.JsonObject dataObj)
+                        return obj;
+
+                    foreach (var baseField in s_baseFieldNames)
                     {
-                        foreach (var baseField in s_baseFieldNames)
+                        if (obj.Remove(baseField, out var value))
                         {
-                            if (obj.Remove(baseField, out var value))
-                            {
-                                dataObj[baseField] = value;
-                            }
+                            dataObj[baseField] = value;
                         }
-                        return dataObj;
                     }
-                    return obj;
+                    return dataObj;
                 }
 
                 private static global::System.Text.Json.Nodes.JsonObject Unflatten<T>(T value, string tagValue, global::System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo)
