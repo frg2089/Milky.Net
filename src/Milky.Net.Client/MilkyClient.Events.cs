@@ -88,7 +88,9 @@ public sealed partial class MilkyClient
             {
                 await ms.FlushAsync(cancellationToken);
                 ms.Seek(0, SeekOrigin.Begin);
-                if (await JsonSerializer.DeserializeAsync(ms, MilkyJsonSerializerContext.Default.Event, cancellationToken) is { } data)
+
+                if (ms.Length > 0
+                    && await JsonSerializer.DeserializeAsync(ms, MilkyJsonSerializerContext.Default.Event, cancellationToken) is { } data)
                     Events.Received(data);
 
                 ms.SetLength(0);
