@@ -19,9 +19,6 @@ on:
       - Directory.Packages.props
       - 'generator/**/*'
       - 'src/**/*'
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
   pull_request:
     branches:
       - master
