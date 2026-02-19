@@ -34,12 +34,18 @@ internal sealed class ClientCommand
                 Path.Combine(Output.FullName, $"{item.TypeName}.g.cs"),
                 item.Code);
 
-        var code = MilkyCSharpApiTypeGenerator.MakeEventScheduler(
+        MilkyCSharpApiTypeGenerator.MakeEventScheduler(
             milkyIR.CommonStructs
                 .OfType<AdvancedUnionType>()
-                .First(static i => i.Name is "Event"));
+                .First(static i => i.Name is "Event"),
+            out var code,
+            out var interfaceCode);
         await File.WriteAllTextAsync(
             Path.Combine(Output.FullName, "MilkyEventScheduler.g.cs"),
             code);
+            
+        await File.WriteAllTextAsync(
+            Path.Combine(Output.FullName, "IMilkyEventScheduler.g.cs"),
+            interfaceCode);
     }
 }
