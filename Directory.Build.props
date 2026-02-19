@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
     <NoWarn Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">$(NoWarn);8629;8604</NoWarn>
   </PropertyGroup>
 
@@ -53,6 +53,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>IsAotCompatible</_Parameter1>
+      <_Parameter2>$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Milky.props" Condition="Exists('$(MSBuildThisFileDirectory)Milky.props')" />
