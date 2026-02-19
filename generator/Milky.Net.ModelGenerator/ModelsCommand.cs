@@ -29,7 +29,9 @@ internal sealed class ModelsCommand
             milkyIR = MilkyIR.ParseFromJson(json);
         }
 
-        var types = MilkyCSharpModelTypeGenerator.Parse(milkyIR);
+        var types = MilkyCSharpModelTypeGenerator.Parse(milkyIR).DistinctBy(static i => i is ModelClassBuilder { TypeParams: { Count: not 0 } typeParams }
+                ? $"{i.Name}{string.Join(", ", typeParams.Select(static i => $"T{i.Name}"))}"
+                : i.Name);
 
         await using var jsonSerializerContext = File.CreateText(Path.Combine(Output.FullName, "MilkyJsonSerializerContext.g.cs"));
 
@@ -49,14 +51,11 @@ internal sealed class ModelsCommand
 
         foreach (var type in types)
         {
-            await jsonSerializerContext.WriteLineAsync($"[JsonSerializable(typeof({type.Name}))]");
-
             var fileName = type.Name;
             if (type is ModelClassBuilder { TypeParams: { Count: not 0 } typeParams })
-            {
                 fileName += $"{{{string.Join(", ", typeParams.Select(static i => $"T{i.Name}"))}}}";
-            }
-
+            else
+                await jsonSerializerContext.WriteLineAsync($"[global::System.Text.Json.Serialization.JsonSerializable(typeof({type.Name}))]");
 
             await File.WriteAllTextAsync(
                 Path.Combine(Output.FullName, $"{fileName}.g.cs"),
