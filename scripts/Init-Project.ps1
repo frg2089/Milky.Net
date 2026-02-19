@@ -6,11 +6,20 @@ $Private:ModelTarget = Join-Path $Private:RootPath 'src' 'Milky.Net.Model' 'Gene
 $Private:ClientTarget = Join-Path $Private:RootPath 'src' 'Milky.Net.Client' 'Generated'
 $Private:ServerTarget = Join-Path $Private:RootPath 'src' 'Milky.Net.Server' 'Generated'
 
+Write-Host 'Building Generator...' -ForegroundColor Blue
 dotnet build $Private:ModelGenerator
 
+Write-Host 'Downloading MilkyIR...' -ForegroundColor Blue
 dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- download --output $Private:MilkyIR
 
-dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- generate props --source $Private:MilkyIR --output $Private:MilkyProps 
+Write-Host 'Generating MSBuild Props...' -ForegroundColor Blue
+dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- generate props --source $Private:MilkyIR --output $Private:MilkyProps
+
+Write-Host 'Generating Model Codes...' -ForegroundColor Blue
 dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- generate models --source $Private:MilkyIR --output $Private:ModelTarget
+
+Write-Host 'Generating Client Codes...' -ForegroundColor Blue
 dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- generate client --source $Private:MilkyIR --output $Private:ClientTarget
+
+Write-Host 'Generating Server Codes...' -ForegroundColor Blue
 dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- generate server --source $Private:MilkyIR --output $Private:ServerTarget
