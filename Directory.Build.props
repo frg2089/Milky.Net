@@ -56,10 +56,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>IsAotCompatible</_Parameter1>
-      <_Parameter2>$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))</_Parameter2>
-    </AssemblyAttribute>
+    <AssemblyMetadata Include="IsAotCompatible" Value="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Milky.props" Condition="Exists('$(MSBuildThisFileDirectory)Milky.props')" />
