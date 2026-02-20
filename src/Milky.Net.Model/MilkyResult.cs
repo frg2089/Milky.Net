@@ -23,10 +23,7 @@ public sealed record class MilkyResult(
     {
         options ??= MilkyJsonSerializerContext.Default.Options;
 
-        if (options.GetTypeInfo(typeof(TResult)) is not JsonTypeInfo<TResult> typeInfo)
-            throw new NotSupportedException($"Cannot resolve type {typeof(TResult).FullName} from JsonSerializerOptions");
-
-        return GetResult(typeInfo);
+        return GetResult(options.GetTypeInfo<TResult>());
     }
 
     /// <summary>

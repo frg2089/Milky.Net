@@ -221,7 +221,7 @@ internal sealed record class JsonConverterBuilder : TypeBuilder
         foreach (var derived in DerivedTypes)
         {
             var typeName = $"{derived.Value}";
-            readSwitchArms.WriteLine($"            \"{derived.Key}\" => ({typeName}?)json.Deserialize(options.GetTypeInfo(typeof({typeName}))),");
+            readSwitchArms.WriteLine($"            \"{derived.Key}\" => json.Deserialize(options.GetTypeInfo<{typeName}>()),");
             writeSwitchArms.WriteLine($"            {typeName} derived => SerializeDerived<{typeName}>(derived, \"{derived.Key}\", options),");
         }
         readSwitchArms.WriteLine($"            _ => throw new global::System.Text.Json.JsonException($\"Unknown {TypeDiscriminatorPropertyName}: '{{tag}}'.\"),");
@@ -258,7 +258,7 @@ internal sealed record class JsonConverterBuilder : TypeBuilder
 
                 private static global::System.Text.Json.Nodes.JsonObject SerializeDerived<T>(T value, string tagValue, global::System.Text.Json.JsonSerializerOptions options)
                 {
-                    var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, options.GetTypeInfo(typeof(T)))?.AsObject()
+                    var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, options.GetTypeInfo<T>())?.AsObject()
                         ?? throw new global::System.Text.Json.JsonException("Serialization produced null.");
 
                     node["{{TypeDiscriminatorPropertyName}}"] = tagValue;
