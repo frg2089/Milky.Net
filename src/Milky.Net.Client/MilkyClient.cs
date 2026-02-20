@@ -14,6 +14,8 @@ public sealed partial class MilkyClient
     private readonly HttpClient _client;
     private readonly ImmutableArray<IMilkyClientMiddleware> _middleware;
 
+    public JsonSerializerOptions JsonSerializerOptions { get; init; } = MilkyJsonSerializerContext.Default.Options;
+
     internal static readonly object EmptyObject = new();
 
     /// <summary>
@@ -31,21 +33,18 @@ public sealed partial class MilkyClient
     /// <exception cref="JsonException">Json 序列化失败</exception>
     public async Task<TResponse> RequestAsync<TRequest, TResponse>(string api, TRequest request, CancellationToken cancellationToken = default)
     {
-        var requestTypeInfo = MilkyJsonSerializerContext.Default.GetTypeInfo(typeof(TRequest))
-            ?? throw new NotSupportedException($"Type {typeof(TRequest).FullName} are not supported.");
-
         Func<Task<TResponse>> func = async () =>
         {
-            using var body = JsonContent.Create(request, requestTypeInfo);
+            using var body = JsonContent.Create(request, JsonSerializerOptions.GetTypeInfo<TRequest>());
             using var response = await _client.PostAsync($"/api/{api}", body, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadFromJsonAsync(MilkyJsonSerializerContext.Default.JsonElement, cancellationToken: cancellationToken);
+            var json = await response.Content.ReadFromJsonAsync(JsonSerializerOptions.GetTypeInfo<JsonElement>(), cancellationToken: cancellationToken);
 
-            var result = json.Deserialize(MilkyJsonSerializerContext.Default.MilkyResult)
-                ?? throw new JsonException($"Cannot deserialize string as {MilkyJsonSerializerContext.Default.MilkyResult.Type.FullName}");
+            var result = json.Deserialize(JsonSerializerOptions.GetTypeInfo<MilkyResult>())
+                ?? throw new JsonException($"Cannot deserialize string as {JsonSerializerOptions.GetTypeInfo<MilkyResult>().Type.FullName}");
 
-            var data = result.GetResult<TResponse>();
+            var data = result.GetResult(JsonSerializerOptions.GetTypeInfo<TResponse>());
 
             return data;
         };

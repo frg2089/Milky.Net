@@ -31,10 +31,15 @@ public sealed partial class MilkyClient
 
         var parser = SseParser.Create(stream, (eventType, data) =>
         {
-            if (eventType is "milky_event")
-                return JsonSerializer.Deserialize(data, MilkyJsonSerializerContext.Default.Event);
+            if (eventType is "heart_beat")
+                return null;
 
-            return JsonSerializer.Deserialize(data, MilkyJsonSerializerContext.Default.Event);
+            var json = JsonElement.Parse(data);
+            if (eventType is "milky_event")
+                return json.Deserialize(JsonSerializerOptions.GetTypeInfo<Event>());
+
+            // Undefined behavior
+            return json.Deserialize(JsonSerializerOptions.GetTypeInfo<Event>());
         });
 
         await foreach (var item in parser.EnumerateAsync(cancellationToken))
@@ -82,7 +87,7 @@ public sealed partial class MilkyClient
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             await ms.WriteAsync(buffer[..result.Count], cancellationToken);
 #else
-            await ms.WriteAsync(buffer.Array.Take(result.Count).ToArray(), cancellationToken);
+            await ms.WriteAsync(buffer.Array.AsMemory(0, result.Count), cancellationToken);
 #endif
             if (result.EndOfMessage)
             {
@@ -90,7 +95,7 @@ public sealed partial class MilkyClient
                 ms.Seek(0, SeekOrigin.Begin);
 
                 if (ms.Length > 0
-                    && await JsonSerializer.DeserializeAsync(ms, MilkyJsonSerializerContext.Default.Event, cancellationToken) is { } data)
+                    && await JsonSerializer.DeserializeAsync(ms, JsonSerializerOptions.GetTypeInfo<Event>(), cancellationToken) is { } data)
                     Events.Received(data);
 
                 ms.SetLength(0);
