@@ -5,7 +5,7 @@ param (
   $Configuration = 'Release',
   [Parameter()]
   [uri]
-  $IR
+  $IR = 'https://milky.ntqqrev.org/raw/milky-ir/ir.json'
 )
 
 $ErrorActionPreference = 'Stop'

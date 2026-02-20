@@ -2,7 +2,7 @@
 param (
   [Parameter()]
   [uri]
-  $IR
+  $IR = 'https://milky.ntqqrev.org/raw/milky-ir/ir.json'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,7 +21,7 @@ if ($LASTEXITCODE -ne 0) {
   throw 'Build Generator failed.'
 }
 
-Write-Host 'Downloading MilkyIR...' -ForegroundColor Blue
+Write-Host "Downloading MilkyIR from $IR ..." -ForegroundColor Blue
 dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- download --ir $IR --output $Private:MilkyIR
 if ($LASTEXITCODE -ne 0) {
   throw 'Download MilkyIR failed.'
