@@ -38,7 +38,7 @@ internal sealed record class EnumBuilder : TypeBuilder
 
 internal sealed record class ModelClassBuilder : TypeBuilder
 {
-    public List<(string Name, string Description)> TypeParams { get; init; } = [];
+    public List<(string Name, string Description, List<string> PosableTypes)> TypeParams { get; init; } = [];
     public List<Field> Params { get; init; } = [];
     public bool IsAbstract { get; set; }
     public ModelClassBuilder? Inherit { get; set; }
@@ -53,10 +53,20 @@ internal sealed record class ModelClassBuilder : TypeBuilder
                 /// {{Description}}
                 /// </summary>
                 """);
-        foreach (var (typeParameterName, description) in TypeParams)
-            writer.WriteLine($"/// <typeparam name=\"{typeParameterName}\">{description}</typeparam>");
+        foreach (var (typeParameterName, description, types) in TypeParams)
+        {
+            writer.WriteLine($"/// <typeparam name=\"T{typeParameterName}\">");
+            writer.WriteLine($"/// {description}<br />");
+
+            writer.WriteLine($"/// <list type=\"bullet\">");
+            foreach (var type in types)
+                writer.WriteLine($"///     <item><see cref=\"{type}\"/></item>");
+            writer.WriteLine($"/// </list>");
+
+            writer.WriteLine($"/// </typeparam>");
+        }
         foreach (var param in Params)
-            writer.WriteLine($"/// <param name=\"{param.Name}\">{param.Description}</param>");
+            writer.WriteLine($"/// <param name=\"{param.Name.Pascalize()}\">{param.Description}</param>");
 
         foreach (var attribute in Attributes)
             writer.WriteLine(attribute);

@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization.Metadata;
-
-namespace Milky.Net.Client;
+﻿namespace Milky.Net.Client;
 
 /// <summary>
 /// Milky 客户端中间件

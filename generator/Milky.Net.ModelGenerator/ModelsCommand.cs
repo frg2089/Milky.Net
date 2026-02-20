@@ -53,9 +53,16 @@ internal sealed class ModelsCommand
         {
             var fileName = type.Name;
             if (type is ModelClassBuilder { TypeParams: { Count: not 0 } typeParams })
+            {
                 fileName += $"{{{string.Join(", ", typeParams.Select(static i => $"T{i.Name}"))}}}";
-            else
+
+                foreach (var typeParameter in CombineTypeParams(typeParams, 0))
+                    await jsonSerializerContext.WriteLineAsync($"[global::System.Text.Json.Serialization.JsonSerializable(typeof({type.Name}<{typeParameter}>))]");
+            }
+            else if (type is not JsonConverterBuilder)
+            {
                 await jsonSerializerContext.WriteLineAsync($"[global::System.Text.Json.Serialization.JsonSerializable(typeof({type.Name}))]");
+            }
 
             await File.WriteAllTextAsync(
                 Path.Combine(Output.FullName, $"{fileName}.g.cs"),
@@ -78,5 +85,26 @@ internal sealed class ModelsCommand
             """);
 
         await jsonSerializerContext.FlushAsync();
+    }
+
+    private static IEnumerable<string> CombineTypeParams(List<(string Name, string Description, List<string> PosableTypes)> typeParams, int index)
+    {
+        if (index >= typeParams.Count)
+            yield break;
+
+        var (_, _, posableTypes) = typeParams[index];
+        foreach (var type in posableTypes)
+        {
+            var next = CombineTypeParams(typeParams, index + 1);
+            if (!next.Any())
+            {
+                yield return type;
+                continue;
+            }
+
+            foreach (var item in next)
+                yield return string.Join(", ", type, item);
+
+        }
     }
 }

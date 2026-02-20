@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
-using System.ComponentModel;
+﻿using System.Collections.Immutable;
 using System.Text;
-using System.Text.Json.Serialization.Metadata;
 
 using Humanizer;
 
@@ -196,12 +193,22 @@ internal static class MilkyCSharpModelTypeGenerator
 
         yield return baseCodeBuilder;
 
+        var types = union.DerivedTypes.Select(i =>
+        {
+            var typeName = i switch
+            {
+                RefDerivedType refDerivedType => refDerivedType.RefStructName.Pascalize(),
+                _ => $"{i.TagValue}_{union.Name}_data".Pascalize(),
+            };
+            return (TypeName: typeName, Type: i);
+        });
+
         // 构造泛型类
         ModelClassBuilder genericCodeBuilder = baseCodeBuilder with
         {
             IsAbstract = false,
             TypeParams = [
-                ("Data", "Data type"),
+                ("Data", "Data type", [..types.Select(static i => i.TypeName)]),
             ],
             Inherit = baseCodeBuilder,
         };
@@ -210,9 +217,7 @@ internal static class MilkyCSharpModelTypeGenerator
         foreach (var field in ParseEnums(unionFields))
             yield return field;
 
-
-
-        foreach (var item in union.DerivedTypes.SelectMany(i => ParseType($"{i.TagValue}_{union.Name}Data".Pascalize(), i)))
+        foreach (var item in types.SelectMany(static i => ParseType(i.TypeName, i.Type)))
             yield return item;
 
         yield return GenerateJsonConverter(converterTypeName, union.TagFieldName, baseCodeBuilder, derivedTypes, true);
