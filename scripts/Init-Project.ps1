@@ -1,3 +1,10 @@
+[CmdletBinding()]
+param (
+  [Parameter()]
+  [uri]
+  $IR
+)
+
 $ErrorActionPreference = 'Stop'
 
 $Private:RootPath = Split-Path $PSScriptRoot
@@ -15,7 +22,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host 'Downloading MilkyIR...' -ForegroundColor Blue
-dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- download --output $Private:MilkyIR
+dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- download --ir $IR --output $Private:MilkyIR
 if ($LASTEXITCODE -ne 0) {
   throw 'Download MilkyIR failed.'
 }
