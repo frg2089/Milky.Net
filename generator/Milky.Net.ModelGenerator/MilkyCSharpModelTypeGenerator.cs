@@ -201,7 +201,7 @@ internal static class MilkyCSharpModelTypeGenerator
             Name = baseCodeBuilder.Name,
             Description = baseCodeBuilder.Description,
             TypeParams = [
-                ("Data", "Data type", [..derivedTypes.Keys]),
+                ("data", "Data type", [..derivedTypes.Keys]),
             ],
             Params = baseCodeBuilder.Params,
             Attributes = [.. baseCodeBuilder

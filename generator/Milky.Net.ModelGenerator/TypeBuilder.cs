@@ -55,7 +55,7 @@ internal sealed record class ModelClassBuilder : TypeBuilder
                 """);
         foreach (var (typeParameterName, description, types) in TypeParams)
         {
-            writer.WriteLine($"/// <typeparam name=\"T{typeParameterName}\">");
+            writer.WriteLine($"/// <typeparam name=\"T{typeParameterName.Pascalize()}\">");
             writer.WriteLine($"/// {description}<br />");
 
             writer.WriteLine($"/// <list type=\"bullet\">");
@@ -81,7 +81,7 @@ internal sealed record class ModelClassBuilder : TypeBuilder
         if (TypeParams.Count is not 0)
         {
             writer.Write("<");
-            writer.Write(string.Join(", ", TypeParams.Select(static i => $"T{i.Name}")));
+            writer.Write(string.Join(", ", TypeParams.Select(static i => $"T{i.Name.Pascalize()}")));
             writer.Write(">");
         }
         writer.WriteLine('(');
@@ -104,7 +104,9 @@ internal sealed record class ModelClassBuilder : TypeBuilder
         foreach (var field in TypeParams)
         {
             hasParams = true;
-            writer.WriteLine($"    T{field.Name} {field.Name},");
+            writer.Write("    ");
+            writer.Write($"[property: global::System.Text.Json.Serialization.JsonPropertyName(\"{field.Name}\")]");
+            writer.WriteLine($"T{field.Name.Pascalize()} {field.Name.Pascalize()},");
         }
 
         var optionalParams = Params.Where(i => i is { IsOptional: true } or { DefaultValue: not null });
