@@ -221,22 +221,23 @@ internal sealed record class JsonConverterBuilder : TypeBuilder
         foreach (var derived in DerivedTypes)
         {
             var typeName = $"{derived.Value}";
-            var typeInfo = $"(global::System.Text.Json.Serialization.Metadata.JsonTypeInfo<{typeName}>)options.GetTypeInfo(typeof({typeName}))";
-            readSwitchArms.WriteLine($"            \"{derived.Key}\" => global::System.Text.Json.JsonSerializer.Deserialize(obj, {typeInfo}),");
-            writeSwitchArms.WriteLine($"            {typeName} derived => SerializeDerived(derived, \"{derived.Key}\", {typeInfo}),");
+            readSwitchArms.WriteLine($"            \"{derived.Key}\" => ({typeName}?)json.Deserialize(options.GetTypeInfo(typeof({typeName}))),");
+            writeSwitchArms.WriteLine($"            {typeName} derived => SerializeDerived<{typeName}>(derived, \"{derived.Key}\", options),");
         }
         readSwitchArms.WriteLine($"            _ => throw new global::System.Text.Json.JsonException($\"Unknown {TypeDiscriminatorPropertyName}: '{{tag}}'.\"),");
         writeSwitchArms.WriteLine($"            _ => throw new global::System.Text.Json.JsonException($\"Unknown derived type: '{{value.GetType().Name}}'.\"),");
 
         return $$"""
+            using global::System.Text.Json;
+
             public sealed class {{Name}} : global::System.Text.Json.Serialization.JsonConverter<{{TargetType.Name}}>
             {
                 public override {{TargetType.Name}}? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
                 {
-                    var obj = global::System.Text.Json.Nodes.JsonNode.Parse(ref reader)?.AsObject()
-                        ?? throw new global::System.Text.Json.JsonException("Expected a JSON object.");
-
-                    var tag = obj["{{TypeDiscriminatorPropertyName}}"]?.GetValue<string>()
+                    var doc = global::System.Text.Json.JsonDocument.ParseValue(ref reader);
+                    var json = doc.RootElement;
+                    
+                    var tag = json.GetProperty("{{TypeDiscriminatorPropertyName}}").GetString()
                         ?? throw new global::System.Text.Json.JsonException("Missing discriminator '{{TypeDiscriminatorPropertyName}}'.");
 
                     return tag switch
@@ -255,9 +256,9 @@ internal sealed record class JsonConverterBuilder : TypeBuilder
                     node.WriteTo(writer, options);
                 }
 
-                private static global::System.Text.Json.Nodes.JsonObject SerializeDerived<T>(T value, string tagValue, global::System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo)
+                private static global::System.Text.Json.Nodes.JsonObject SerializeDerived<T>(T value, string tagValue, global::System.Text.Json.JsonSerializerOptions options)
                 {
-                    var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, typeInfo)?.AsObject()
+                    var node = global::System.Text.Json.JsonSerializer.SerializeToNode(value, options.GetTypeInfo(typeof(T)))?.AsObject()
                         ?? throw new global::System.Text.Json.JsonException("Serialization produced null.");
 
                     node["{{TypeDiscriminatorPropertyName}}"] = tagValue;
