@@ -162,16 +162,18 @@ internal static class MilkyCSharpModelTypeGenerator
             IsAbstract = true,
         };
 
-        Dictionary<string, string> derivedTypes = new(union.DerivedTypes.Count);
+        Dictionary<string, string> derivedTypeNames = new(union.DerivedTypes.Count);
+        Dictionary<string, MilkyDerivedType> derivedTypes = new(union.DerivedTypes.Count);
         foreach (var item in union.DerivedTypes)
         {
             var typeName = item is RefDerivedType refDerivedType
-                ? refDerivedType.RefStructName
-                : $"{item.TagValue}_{union.Name}_data";
+                ? refDerivedType.RefStructName.Pascalize()
+                : $"{item.TagValue}_{union.Name}_data".Pascalize();
 
-            typeName = $"{unionTypeName}<{typeName.Pascalize()}>";
-
-            derivedTypes[item.TagValue] = typeName;
+            derivedTypes[typeName] = item;
+            
+            typeName = $"{unionTypeName}<{typeName}>";
+            derivedTypeNames[item.TagValue] = typeName;
 
             baseCodeBuilder.Attributes.Add($"// [global::System.Text.Json.Serialization.JsonDerivedType(typeof({typeName}), \"{item.TagValue}\")]");
         }
@@ -193,23 +195,19 @@ internal static class MilkyCSharpModelTypeGenerator
 
         yield return baseCodeBuilder;
 
-        var types = union.DerivedTypes.Select(i =>
-        {
-            var typeName = i switch
-            {
-                RefDerivedType refDerivedType => refDerivedType.RefStructName.Pascalize(),
-                _ => $"{i.TagValue}_{union.Name}_data".Pascalize(),
-            };
-            return (TypeName: typeName, Type: i);
-        });
-
         // 构造泛型类
-        ModelClassBuilder genericCodeBuilder = baseCodeBuilder with
+        ModelClassBuilder genericCodeBuilder = new()
         {
-            IsAbstract = false,
+            Name = baseCodeBuilder.Name,
+            Description = baseCodeBuilder.Description,
             TypeParams = [
-                ("Data", "Data type", [..types.Select(static i => i.TypeName)]),
+                ("Data", "Data type", [..derivedTypes.Keys]),
             ],
+            Params = baseCodeBuilder.Params,
+            Attributes = [.. baseCodeBuilder
+                .Attributes
+                .Where(i => !i.Equals($"[global::System.Text.Json.Serialization.JsonConverter(typeof({converterTypeName}))]"))],
+            IsAbstract = false,
             Inherit = baseCodeBuilder,
         };
         yield return genericCodeBuilder;
@@ -217,10 +215,12 @@ internal static class MilkyCSharpModelTypeGenerator
         foreach (var field in ParseEnums(unionFields))
             yield return field;
 
-        foreach (var item in types.SelectMany(static i => ParseType(i.TypeName, i.Type)))
+        foreach (var item in derivedTypes
+            .Where(static i => i is not { Value: RefDerivedType })
+            .SelectMany(i => ParseType(i.Key, i.Value)))
             yield return item;
 
-        yield return GenerateJsonConverter(converterTypeName, union.TagFieldName, baseCodeBuilder, derivedTypes, true);
+        yield return GenerateJsonConverter(converterTypeName, union.TagFieldName, baseCodeBuilder, derivedTypeNames, true);
     }
 
     private static IEnumerable<EnumBuilder> ParseEnums(IEnumerable<Field> fields)
