@@ -38,8 +38,16 @@ milky.Events.BotOffline += (milky, e) => {
   // ...
 };
 
+#if WebSocket
 // 通过 WebSocket 接收事件
-_ = milky.ReceivingEventUsingWebSocketAsync();
+_ = milky.ReceivingEventUsingWebSocketAsync(static ws => {
+    // 每 30 秒发送一次心跳
+    ws.Options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+});
+#else
+// 通过 SSE 接收事件 (无限重连)
+_ = milky.ReceivingEventUsingSSEAsync(-1);
+#endif
 
 // 获取服务端（实现端）信息
 var result = await milky.System.GetImplInfoAsync();

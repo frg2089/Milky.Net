@@ -2,6 +2,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
+using Microsoft.Extensions.Logging;
+
 using Milky.Net.Model;
 
 namespace Milky.Net.Client;
@@ -12,6 +14,7 @@ namespace Milky.Net.Client;
 public sealed partial class MilkyClient
 {
     private readonly HttpClient _client;
+    private readonly ILogger<IMilkyEventScheduler>? _eventLogger;
     private readonly ImmutableArray<IMilkyClientMiddleware> _middleware;
 
     public JsonSerializerOptions JsonSerializerOptions { get; init; } = MilkyJsonSerializerContext.Default.Options;

@@ -100,12 +100,18 @@ internal static class MilkyCSharpApiTypeGenerator
             /// <param name="client">Http 客户端实例</param>
             /// <param name="middleware">请求中间件</param>
             /// <param name="eventSchedulerProvider">事件调度器，默认为<cref="MilkyEventScheduler"/></param>
-            public MilkyClient(HttpClient client, IEnumerable<IMilkyClientMiddleware>? middleware = default, IMilkyEventSchedulerProvider? eventSchedulerProvider = null)
+            /// <param name="eventLogger">SSE日志记录器</param>
+            public MilkyClient(
+                HttpClient client,
+                IEnumerable<IMilkyClientMiddleware>? middleware = default,
+                IMilkyEventSchedulerProvider? eventSchedulerProvider = null,
+                Microsoft.Extensions.Logging.ILogger<IMilkyEventScheduler>? eventLogger = null)
             {
                 _client = client;
                 _middleware = middleware?.Reverse().ToImmutableArray() ?? [];
                 eventSchedulerProvider ??= MilkyEventSchedulerProvider.Default;
                 Events = eventSchedulerProvider.Create(this);
+                _eventLogger = eventLogger;
                 {{constructor.Join("\r\n        ")}}
             }
 
