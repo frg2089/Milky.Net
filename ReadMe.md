@@ -54,3 +54,32 @@ var result = await milky.System.GetImplInfoAsync();
 
 /// ...
 ```
+
+## 关于版本号
+在经历了混乱的版本管理时代后将执行以下规则：
+`major.minor.patch`
+
+- `Major`: `Milky IR` 的版本号发生改变
+- `Minor`: 与 `Milky IR` 无关的但 ABI 不兼容的更改或对源代码生成器的更改
+- `Patch`: ABI 兼容的小补丁
+
+关于版本后缀
+
+- `-preview`: Milky.Sdk 的观察版本[^preview]
+- `-next`: 跟随预览版 `Milky IR`，在单独的分支中维护
+
+[^preview]: 因为我目前没有机器人项目，吃不到[狗粮](https://en.wikipedia.org/wiki/Eating_your_own_dog_food)，需要其他人来帮忙测试可用性
+
+例外：
+在此规定出现前的版本不受此规则影响：
+- 0.0.1
+- 0.0.2
+- 0.0.3
+- 0.0.4
+- 1.0.0
+- 2.0.0
+- 3.0.0
+- 4.0.0-preview.1
+- 4.0.0-preview.2
+- 4.0.0-preview.3
+- 4.0.0-preview.4
