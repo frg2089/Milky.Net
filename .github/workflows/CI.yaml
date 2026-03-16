@@ -45,6 +45,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+          submodules: 'recursive'
 
       - name: 配置 .Net 环境
         uses: actions/setup-dotnet@v5

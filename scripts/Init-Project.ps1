@@ -1,14 +1,12 @@
 [CmdletBinding()]
-param (
-  [Parameter()]
-  [uri]
-  $IR = 'https://milky.ntqqrev.org/raw/milky-ir/ir.json'
-)
+param ()
 
 $ErrorActionPreference = 'Stop'
 
 $Private:RootPath = Split-Path $PSScriptRoot
-$Private:MilkyIR = Join-Path $Private:RootPath 'MilkyIR.json'
+$Private:MilkyVersionFile = Join-Path $Private:RootPath 'MilkyVersion'
+$Private:MilkyVersion = Get-Content $Private:MilkyVersionFile
+$Private:MilkyIR = Join-Path $Private:RootPath 'lib' 'Milky.IR' 'archive' "milky-ir-$Private:MilkyVersion.json"
 $Private:MilkyProps = Join-Path $Private:RootPath 'Milky.props'
 $Private:ModelGenerator = Join-Path $Private:RootPath 'generator' 'Milky.Net.ModelGenerator'
 $Private:ModelTarget = Join-Path $Private:RootPath 'src' 'Milky.Net.Model' 'Generated'
@@ -19,12 +17,6 @@ Write-Host 'Building Generator...' -ForegroundColor Blue
 dotnet build $Private:ModelGenerator
 if ($LASTEXITCODE -ne 0) {
   throw 'Build Generator failed.'
-}
-
-Write-Host "Downloading MilkyIR from $IR ..." -ForegroundColor Blue
-dotnet run --no-build --no-launch-profile --project $Private:ModelGenerator -- download --ir $IR --output $Private:MilkyIR
-if ($LASTEXITCODE -ne 0) {
-  throw 'Download MilkyIR failed.'
 }
 
 Write-Host 'Generating MSBuild Props...' -ForegroundColor Blue
