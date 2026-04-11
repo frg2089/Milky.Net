@@ -59,9 +59,9 @@ var result = await milky.System.GetImplInfoAsync();
 在经历了混乱的版本管理时代后将执行以下规则：
 `major.minor.patch`
 
-- `Major`: `Milky IR` 的版本号发生改变
-- `Minor`: 与 `Milky IR` 无关的但 ABI 不兼容的更改或对源代码生成器的更改
-- `Patch`: ABI 兼容的小补丁
+- `Major`: `Milky IR` 的 `Major`
+- `Minor`: `Milky IR` 的 `Major`
+- `Patch`: `Milky IR` 的 `Patch`
 
 关于版本后缀
 
