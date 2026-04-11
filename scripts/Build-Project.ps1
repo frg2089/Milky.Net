@@ -2,7 +2,10 @@
 param (
   [Parameter()]
   [string]
-  $Configuration = 'Release'
+  $Configuration = 'Release',
+  [Parameter()]
+  [uri]
+  $IR = 'https://milky.ntqqrev.org/raw/milky-ir/ir.json'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -17,7 +20,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host 'Generating...' -ForegroundColor Blue
-. $Private:ProjectRoot/scripts/Init-Project.ps1
+. $Private:ProjectRoot/scripts/Init-Project.ps1 -IR $IR
 
 Write-Host 'Building...' -ForegroundColor Blue
 dotnet build --graph --artifacts-path $Private:ArtifactsPath --configuration $Configuration --no-restore
