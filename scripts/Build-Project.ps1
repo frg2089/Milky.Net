@@ -1,17 +1,26 @@
+#Requires -Version 5.1
+
 [CmdletBinding()]
 param (
   [Parameter()]
   [string]
   $Configuration = 'Release',
   [Parameter()]
-  [uri]
-  $IR = 'https://milky.ntqqrev.org/raw/milky-ir/ir.json'
+  [string]
+  $MilkyVersion
 )
 
 $ErrorActionPreference = 'Stop'
 
 $Private:ProjectRoot = Join-Path $PSScriptRoot '..'
 $Private:ArtifactsPath = Join-Path $Private:ProjectRoot 'artifacts'
+$Private:MilkyVersionPath = Join-Path $Private:ProjectRoot 'MilkyVersion'
+
+if (-not $MilkyVersion) {
+  $MilkyVersion = Get-Content $Private:MilkyVersionPath -Head 1
+}
+
+Write-Host "MilkyVersion: $MilkyVersion" -ForegroundColor Blue
 
 Write-Host 'Restoring...' -ForegroundColor Blue
 dotnet restore --graph --artifacts-path $Private:ArtifactsPath
