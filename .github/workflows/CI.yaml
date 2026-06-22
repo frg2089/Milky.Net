@@ -44,7 +44,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: 签出仓库
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0
@@ -69,7 +69,7 @@ jobs:
         run: dotnet pack --graph --artifacts-path artifacts --configuration Release --no-restore --no-build --include-symbols
 
       - name: 收集 Nuget 包
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-packages
           path: |
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 签出仓库
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           sparse-checkout: ''
 
@@ -97,15 +97,17 @@ jobs:
           cache: false
 
       - name: Download a Build Artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: nuget-packages
           path: artifacts
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: artifacts/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref, '-') }}
 
       - name: 推送 Nuget 包
         shell: pwsh
