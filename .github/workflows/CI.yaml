@@ -19,6 +19,8 @@ on:
       - Directory.Packages.props
       - 'generator/**/*'
       - 'src/**/*'
+      - MilkyVersion
+
   pull_request:
     branches:
       - master
@@ -34,6 +36,7 @@ on:
       - Directory.Packages.props
       - 'generator/**/*'
       - 'src/**/*'
+      - MilkyVersion
 
 jobs:
   build:
