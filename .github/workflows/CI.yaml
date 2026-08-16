@@ -52,7 +52,8 @@ jobs:
       - name: 配置 .Net 环境
         uses: actions/setup-dotnet@v5
         with:
-          cache: true
+          global-json-file: ./global.json
+          config-file: ./nuget.config
           cache-dependency-path: '**/packages.lock.json'
 
       - name: 还原
@@ -88,12 +89,13 @@ jobs:
       - name: 签出仓库
         uses: actions/checkout@v7
         with:
-          sparse-checkout: ''
+          sparse-checkout: '.'
 
       - name: 配置 .Net 环境
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: ./global.json
+          config-file: ./nuget.config
           cache: false
 
       - name: Download a Build Artifact
@@ -109,12 +111,11 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ contains(github.ref, '-') }}
 
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: nuget
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: 推送 Nuget 包
-        shell: pwsh
-        continue-on-error: true
-        env:
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-        run: |
-          Set-Location artifacts
-          dotnet nuget push *.nupkg -s nuget -k $env:NUGET_TOKEN --skip-duplicate
-          Set-Location ..
+        run: dotnet nuget push artifacts/*.nupkg --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source "https://www.nuget.org/api/v2/package" --skip-duplicate
