@@ -84,6 +84,7 @@ jobs:
     permissions:
       contents: write
       discussions: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: 签出仓库
